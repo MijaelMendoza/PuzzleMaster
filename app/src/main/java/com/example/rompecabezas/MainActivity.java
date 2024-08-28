@@ -11,7 +11,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 public class MainActivity extends AppCompatActivity {
 
-    Button btquickplay, btimagenes;
+    Button btquickplay, btimagenes, btversus, bfs, astar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -20,6 +20,9 @@ public class MainActivity extends AppCompatActivity {
 
         btquickplay = findViewById(R.id.btQuickPlay);
         btimagenes = findViewById(R.id.btImagenes);
+        btversus = findViewById(R.id.btVersus);
+        bfs = findViewById(R.id.btBfs);
+        astar = findViewById(R.id.btAstar);
 
         btquickplay.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -34,6 +37,30 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 Intent ip = new Intent(MainActivity.this, ImagePlay.class);
                 startActivity(ip);
+            }
+        });
+
+        btversus.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent vs = new Intent(MainActivity.this, Versus.class);
+                startActivity(vs);
+            }
+        });
+
+        bfs.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent bfs = new Intent(MainActivity.this, bfs.class);
+                startActivity(bfs);
+            }
+        });
+
+        astar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent astar = new Intent(MainActivity.this, QuickPlay.class);
+                startActivity(astar);
             }
         });
 

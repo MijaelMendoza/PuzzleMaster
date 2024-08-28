@@ -13,6 +13,12 @@
         android:theme="@style/Theme.Rompecabezas"
         tools:targetApi="31">
         <activity
+            android:name=".bfs"
+            android:exported="false" />
+        <activity
+            android:name=".Versus"
+            android:exported="false" />
+        <activity
             android:name=".ImagePlay"
             android:exported="false" />
         <activity

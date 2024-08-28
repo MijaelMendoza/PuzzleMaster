@@ -1,0 +1,422 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".Versus">
+
+    <!-- Spinner para seleccionar la dificultad -->
+    <Spinner
+        android:id="@+id/spinner_dificultad"
+        android:layout_width="wrap_content"
+        android:layout_height="48dp"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:entries="@array/dificultades"
+        android:layout_marginTop="100dp" />
+
+    <!-- Layout Horizontal para muestra y solver -->
+    <LinearLayout
+        android:id="@+id/sample_solver_layout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/spinner_dificultad"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="20dp"
+        android:orientation="horizontal">
+
+        <!-- Sección de Muestra -->
+        <LinearLayout
+            android:id="@+id/sample_layout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Fila 1 -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/sampleA"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:text="A"
+                    android:gravity="center"
+                    android:textSize="30dp"
+                    android:textColor="#000"
+                    android:background="#2558D9" />
+
+                <TextView
+                    android:id="@+id/sampleB"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:text="B"
+                    android:gravity="center"
+                    android:textSize="30dp"
+                    android:textColor="#000"
+                    android:background="#4CAF50" />
+
+                <TextView
+                    android:id="@+id/sampleC"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:text="C"
+                    android:gravity="center"
+                    android:textSize="30dp"
+                    android:textColor="#000"
+                    android:background="#FFEB3B" />
+            </LinearLayout>
+
+            <!-- Fila 2 -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/sampleD"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:text="D"
+                    android:gravity="center"
+                    android:textSize="30dp"
+                    android:textColor="#000"
+                    android:background="#F44336" />
+
+                <TextView
+                    android:id="@+id/sampleE"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:text="E"
+                    android:gravity="center"
+                    android:textSize="30dp"
+                    android:textColor="#000"
+                    android:background="#FF9800"/>
+
+                <TextView
+                    android:id="@+id/sampleF"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:text="F"
+                    android:gravity="center"
+                    android:textSize="30dp"
+                    android:textColor="#000"
+                    android:background="#9C27B0" />
+            </LinearLayout>
+
+            <!-- Fila 3 -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/sampleG"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:text="G"
+                    android:gravity="center"
+                    android:textSize="30dp"
+                    android:textColor="#000"
+                    android:background="#00BCD4" />
+
+                <TextView
+                    android:id="@+id/sampleH"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:text="H"
+                    android:gravity="center"
+                    android:textSize="30dp"
+                    android:textColor="#000"
+                    android:background="#9E9E9E" />
+
+                <TextView
+                    android:id="@+id/sampleX"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:text="X"
+                    android:gravity="center"
+                    android:textSize="30dp"
+                    android:textColor="#000"
+                    android:background="#FFFFFF" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Sección de Resolución del Algoritmo -->
+        <LinearLayout
+            android:id="@+id/solver_layout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:orientation="vertical">
+
+            <!-- Fila 1 -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/solverA"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:text="A"
+                    android:gravity="center"
+                    android:textSize="30dp"
+                    android:textColor="#000"
+                    android:background="#2558D9" />
+
+                <TextView
+                    android:id="@+id/solverB"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:text="B"
+                    android:gravity="center"
+                    android:textSize="30dp"
+                    android:textColor="#000"
+                    android:background="#4CAF50" />
+
+                <TextView
+                    android:id="@+id/solverC"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:text="C"
+                    android:gravity="center"
+                    android:textSize="30dp"
+                    android:textColor="#000"
+                    android:background="#FFEB3B" />
+            </LinearLayout>
+
+            <!-- Fila 2 -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/solverD"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:text="D"
+                    android:gravity="center"
+                    android:textSize="30dp"
+                    android:textColor="#000"
+                    android:background="#F44336"  />
+
+                <TextView
+                    android:id="@+id/solverE"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:text="E"
+                    android:gravity="center"
+                    android:textSize="30dp"
+                    android:textColor="#000"
+                    android:background="#FF9800" />
+
+                <TextView
+                    android:id="@+id/solverF"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:text="F"
+                    android:gravity="center"
+                    android:textSize="30dp"
+                    android:textColor="#000"
+                    android:background="#9C27B0" />
+            </LinearLayout>
+
+            <!-- Fila 3 -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/solverG"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:text="G"
+                    android:gravity="center"
+                    android:textSize="30dp"
+                    android:textColor="#000"
+                    android:background="#00BCD4" />
+
+                <TextView
+                    android:id="@+id/solverH"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:text="H"
+                    android:gravity="center"
+                    android:textSize="30dp"
+                    android:textColor="#000"
+                    android:background="#9E9E9E" />
+
+                <TextView
+                    android:id="@+id/solverX"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:text="X"
+                    android:gravity="center"
+                    android:textSize="30dp"
+                    android:textColor="#000"
+                    android:background="#FFFFFF" />
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Sección del Jugador -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/sample_solver_layout"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="20dp"
+        android:orientation="vertical">
+
+        <!-- Fila 1 -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tvA"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:text="A"
+                android:gravity="center"
+                android:textSize="50dp"
+                android:textColor="#000"
+                android:background="#2558D9"  />
+
+            <TextView
+                android:id="@+id/tvB"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:text="B"
+                android:gravity="center"
+                android:textSize="50dp"
+                android:textColor="#000"
+                android:background="#4CAF50" />
+
+            <TextView
+                android:id="@+id/tvC"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:text="C"
+                android:gravity="center"
+                android:textSize="50dp"
+                android:textColor="#000"
+                android:background="#FFEB3B"  />
+        </LinearLayout>
+
+        <!-- Fila 2 -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tvD"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:text="D"
+                android:gravity="center"
+                android:textSize="50dp"
+                android:textColor="#000"
+                android:background="#F44336"  />
+
+            <TextView
+                android:id="@+id/tvX"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:text="X"
+                android:gravity="center"
+                android:textSize="50dp"
+                android:textColor="#000"
+                android:background="#FFFFFF" />
+
+            <TextView
+                android:id="@+id/tvE"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:text="E"
+                android:gravity="center"
+                android:textSize="50dp"
+                android:textColor="#000"
+                android:background="#FF9800" />
+        </LinearLayout>
+
+        <!-- Fila 3 -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tvF"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:text="F"
+                android:gravity="center"
+                android:textSize="50dp"
+                android:textColor="#000"
+                android:background="#9C27B0" />
+
+            <TextView
+                android:id="@+id/tvG"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:text="G"
+                android:gravity="center"
+                android:textSize="50dp"
+                android:textColor="#000"
+                android:background="#00BCD4" />
+
+            <TextView
+                android:id="@+id/tvH"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:text="H"
+                android:gravity="center"
+                android:textSize="50dp"
+                android:textColor="#000"
+                android:background="#9E9E9E" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Botones para comenzar el juego y salir -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:padding="20dp">
+
+        <Button
+            android:id="@+id/bt_start"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Start" />
+
+        <Button
+            android:id="@+id/btnuevo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Nuevo"
+            android:layout_marginStart="20dp" />
+
+        <Button
+            android:id="@+id/btsalir"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Salir"
+            android:layout_marginStart="20dp" />
+
+    </LinearLayout>
+
+</RelativeLayout>
