@@ -5,7 +5,30 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
+    tools:context=".MainActivity"
+    android:background="#009688">
+
+    <!-- Información del usuario seleccionado -->
+    <TextView
+        android:id="@+id/tvUserInfo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Usuario: - Puntaje: "
+        android:textSize="20dp"
+        android:layout_marginTop="16dp"
+        android:padding="30dp"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"/>
+
+    <!-- Botón para cambiar de usuario -->
+    <Button
+        android:id="@+id/btnChangeUser"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Cambiar Usuario"
+        android:layout_below="@id/tvUserInfo"
+        android:layout_marginTop="8dp"
+        android:layout_centerHorizontal="true"/>
 
     <!-- Sección de Muestra -->
     <LinearLayout
@@ -14,8 +37,11 @@
         android:layout_height="match_parent"
         android:layout_centerHorizontal="true"
         android:gravity="center"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:layout_below="@id/btnChangeUser"
+        android:layout_marginTop="16dp">
 
+        <!-- Botones de juego existentes -->
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -23,6 +49,7 @@
             android:text="Juego Rapido"
             android:id="@+id/btQuickPlay"
             android:backgroundTint="#FC063593"
+            android:textColor="#FFF"
             />
 
         <Button
@@ -32,6 +59,7 @@
             android:text="A*"
             android:id="@+id/btAstar"
             android:backgroundTint="#FC063593"
+            android:textColor="#FFF"
             />
 
         <Button
@@ -41,6 +69,7 @@
             android:text="BFS"
             android:id="@+id/btBfs"
             android:backgroundTint="#FC063593"
+            android:textColor="#FFF"
             />
 
         <Button
@@ -50,6 +79,7 @@
             android:text="Juego con Imagenes"
             android:id="@+id/btImagenes"
             android:backgroundTint="#FC063593"
+            android:textColor="#FFF"
             />
 
         <Button
@@ -59,9 +89,7 @@
             android:text="Player vs AI"
             android:id="@+id/btVersus"
             android:backgroundTint="#FC063593"
+            android:textColor="#FFF"
             />
-
-
     </LinearLayout>
-
 </RelativeLayout>

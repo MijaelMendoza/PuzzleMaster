@@ -1,5 +1,7 @@
 package com.example.rompecabezas;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
@@ -7,6 +9,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.app.AlertDialog;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -193,11 +196,29 @@ public class QuickPlay extends AppCompatActivity {
     }
 
     private void showWinMessage() {
+        // Añadir 500 puntos al usuario actual
+        addPointsToCurrentUser(500);
+
         new AlertDialog.Builder(this)
                 .setTitle("¡Ganaste!")
-                .setMessage("Has completado el rompecabezas")
+                .setMessage("Has completado el rompecabezas, Obtuviste 500 puntos")
                 .setPositiveButton("OK", null)
                 .show();
+    }
+
+    private void addPointsToCurrentUser(int points) {
+        SharedPreferences sharedPreferences = getSharedPreferences("Users", Context.MODE_PRIVATE);
+        String currentUser = sharedPreferences.getString("currentUser", null);
+
+        if (currentUser != null) {
+            int currentScore = sharedPreferences.getInt(currentUser, 0);
+            int newScore = currentScore + points;
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putInt(currentUser, newScore);
+            editor.apply();
+        } else {
+            Toast.makeText(this, "No se ha seleccionado ningún usuario", Toast.LENGTH_SHORT).show();
+        }
     }
 
     // Algoritmo A* para encontrar la solución óptima

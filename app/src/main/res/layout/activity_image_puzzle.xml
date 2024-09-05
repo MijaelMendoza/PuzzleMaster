@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".image_puzzle"
+    android:orientation="vertical"
+    android:background="#009688">
+
+<Button
+    android:id="@+id/btnChooseImage"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="Seleccionar Imagen" />
+
+<Button
+    android:id="@+id/btnTakePhoto"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="Tomar Foto" />
+
+    <Button
+        android:id="@+id/btnSolver"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Solver" />
+
+    <!-- ImageView para mostrar la imagen original -->
+    <ImageView
+        android:id="@+id/imageViewOriginal"
+        android:layout_width="match_parent"
+        android:layout_height="250dp"
+        android:layout_marginBottom="30dp"
+        android:contentDescription="Imagen Original"/>
+
+
+    <GridView
+        android:id="@+id/gridView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:numColumns="3"
+        android:verticalSpacing="2dp"
+        android:horizontalSpacing="2dp"
+        android:gravity="center"
+        android:columnWidth="90dp" />
+
+
+</LinearLayout>

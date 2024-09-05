@@ -1,5 +1,7 @@
 package com.example.rompecabezas;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
@@ -10,6 +12,8 @@ import android.widget.TextView;
 import android.app.AlertDialog;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
 
 import java.util.ArrayList;
@@ -269,12 +273,28 @@ public class Versus extends AppCompatActivity {
     }
 
     private void showLoseMessage() {
+        addPointsToCurrentUser(-500);
         runOnUiThread(() -> new AlertDialog.Builder(this)
                 .setTitle("¡Perdiste!")
-                .setMessage("La IA ha completado el rompecabezas antes que tú.")
+                .setMessage("La IA ha completado el rompecabezas antes que tú. Perdiste 500 puntos")
                 .setPositiveButton("OK", null)
                 .show());
         resetGame();
+    }
+
+    private void addPointsToCurrentUser(int points) {
+        SharedPreferences sharedPreferences = getSharedPreferences("Users", Context.MODE_PRIVATE);
+        String currentUser = sharedPreferences.getString("currentUser", null);
+
+        if (currentUser != null) {
+            int currentScore = sharedPreferences.getInt(currentUser, 0);
+            int newScore = currentScore + points;
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putInt(currentUser, newScore);
+            editor.apply();
+        } else {
+            Toast.makeText(this, "No se ha seleccionado ningún usuario", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void solvePuzzle() {
