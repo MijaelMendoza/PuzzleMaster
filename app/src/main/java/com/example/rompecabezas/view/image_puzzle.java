@@ -1,4 +1,4 @@
-package com.example.rompecabezas;
+package com.example.rompecabezas.view;
 
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -25,6 +25,10 @@ import java.util.List;
 import java.util.Random;
 
 import android.Manifest;
+
+import com.example.rompecabezas.controller.PuzzleAdapter;
+import com.example.rompecabezas.R;
+import com.example.rompecabezas.model.Nodes;
 
 public class image_puzzle extends AppCompatActivity {
 

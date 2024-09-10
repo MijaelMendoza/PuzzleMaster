@@ -1,7 +1,5 @@
-package com.example.rompecabezas;
+package com.example.rompecabezas.view;
 
-import android.content.Context;
-import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
@@ -9,9 +7,10 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.app.AlertDialog;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.example.rompecabezas.R;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -20,9 +19,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
-import java.util.PriorityQueue;
 
-public class QuickPlay extends AppCompatActivity {
+public class bfs extends AppCompatActivity {
 
     TextView[] puzzleTiles;
     TextView[] sampleTiles;
@@ -33,7 +31,7 @@ public class QuickPlay extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_quick_play);
+        setContentView(R.layout.activity_bfs);
 
         btAleatorio = findViewById(R.id.aleatorio);
         btSolver = findViewById(R.id.solver);
@@ -116,8 +114,6 @@ public class QuickPlay extends AppCompatActivity {
 
     private boolean isSolvable(List<String> tiles) {
         int inversions = 0;
-        int gridWidth = 3; // Asumiendo un puzzle 3x3
-
         for (int i = 0; i < tiles.size() - 1; i++) {
             for (int j = i + 1; j < tiles.size(); j++) {
                 if (!tiles.get(i).equals("X") && !tiles.get(j).equals("X") && tiles.get(i).compareTo(tiles.get(j)) > 0) {
@@ -125,8 +121,6 @@ public class QuickPlay extends AppCompatActivity {
                 }
             }
         }
-
-        // Para un puzzle 3x3, solo necesitamos que el número de inversiones sea par
         return inversions % 2 == 0;
     }
 
@@ -196,32 +190,14 @@ public class QuickPlay extends AppCompatActivity {
     }
 
     private void showWinMessage() {
-        // Añadir 500 puntos al usuario actual
-        addPointsToCurrentUser(500);
-
         new AlertDialog.Builder(this)
                 .setTitle("¡Ganaste!")
-                .setMessage("Has completado el rompecabezas, Obtuviste 500 puntos")
+                .setMessage("Has completado el rompecabezas")
                 .setPositiveButton("OK", null)
                 .show();
     }
 
-    private void addPointsToCurrentUser(int points) {
-        SharedPreferences sharedPreferences = getSharedPreferences("Users", Context.MODE_PRIVATE);
-        String currentUser = sharedPreferences.getString("currentUser", null);
-
-        if (currentUser != null) {
-            int currentScore = sharedPreferences.getInt(currentUser, 0);
-            int newScore = currentScore + points;
-            SharedPreferences.Editor editor = sharedPreferences.edit();
-            editor.putInt(currentUser, newScore);
-            editor.apply();
-        } else {
-            Toast.makeText(this, "No se ha seleccionado ningún usuario", Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    // Algoritmo A* para encontrar la solución óptima
+    // Resolver el puzzle usando BFS
     private void solvePuzzle() {
         List<String> initial = new ArrayList<>();
         for (TextView tile : puzzleTiles) {
@@ -233,12 +209,12 @@ public class QuickPlay extends AppCompatActivity {
             goal.add(tile.getText().toString());
         }
 
-        List<List<String>> solutionPath = aStar(initial, goal);
+        List<List<String>> solutionPath = bfs(initial, goal);
 
         if (solutionPath != null && !solutionPath.isEmpty()) {
             for (int i = 1; i < solutionPath.size(); i++) {
                 List<String> step = solutionPath.get(i);
-                final int delay = i * 250;
+                final int delay = i * 300;
                 handler.postDelayed(() -> {
                     setTiles(puzzleTiles, step);
                     pivot = findPivot();
@@ -247,81 +223,52 @@ public class QuickPlay extends AppCompatActivity {
         }
     }
 
-    // Algoritmo A* modificado para encontrar la solución óptima
-    private List<List<String>> aStar(List<String> initial, List<String> goal) {
-        PriorityQueue<Nodes> openSet = new PriorityQueue<>();
-        Set<List<String>> closedSet = new HashSet<>();
-        openSet.add(new Nodes(initial, 0, heuristic(initial, goal), null));
+    // Algoritmo de BFS para encontrar la solución
+    private List<List<String>> bfs(List<String> initial, List<String> goal) {
+        Queue<List<String>> queue = new LinkedList<>();
+        Queue<List<List<String>>> paths = new LinkedList<>();
+        Set<List<String>> visited = new HashSet<>();
+        queue.add(initial);
+        paths.add(new ArrayList<>(List.of(initial)));
+        visited.add(initial);
 
-        while (!openSet.isEmpty()) {
-            Nodes currentNode = openSet.poll();
-            List<String> current = currentNode.state;
+        while (!queue.isEmpty()) {
+            List<String> current = queue.poll();
+            List<List<String>> path = paths.poll();
 
             if (current.equals(goal)) {
-                return reconstructPath(currentNode);
+                return path;
             }
 
-            closedSet.add(current);
             int emptyIndex = current.indexOf("X");
             int[] directions = {-3, 3, -1, 1};
 
             for (int dir : directions) {
                 int newIndex = emptyIndex + dir;
 
+                // Validar si el nuevo índice es válido y si se está moviendo de manera correcta
                 if (newIndex >= 0 && newIndex < 9 && isValidMove(emptyIndex, newIndex)) {
                     List<String> neighbor = new ArrayList<>(current);
                     Collections.swap(neighbor, emptyIndex, newIndex);
 
-                    if (!closedSet.contains(neighbor)) {
-                        int tentativeGScore = currentNode.gScore + 1;
-                        Nodes neighborNode = new Nodes(neighbor, tentativeGScore, tentativeGScore + heuristic(neighbor, goal), currentNode);
-                        openSet.add(neighborNode);
+                    if (!visited.contains(neighbor)) {
+                        visited.add(neighbor);
+                        queue.add(neighbor);
+
+                        // Agregar este movimiento al camino
+                        List<List<String>> newPath = new ArrayList<>(path);
+                        newPath.add(neighbor);
+                        paths.add(newPath);
+
+                        // Si encontramos la solución, devolvemos el camino
+                        if (neighbor.equals(goal)) {
+                            return newPath;
+                        }
                     }
                 }
             }
         }
         return null;
-    }
-
-    // Método para reconstruir la ruta desde el nodo final
-    private List<List<String>> reconstructPath(Nodes node) {
-        List<List<String>> path = new ArrayList<>();
-        while (node != null) {
-            path.add(0, node.state);
-            node = node.parent;
-        }
-        return path;
-    }
-
-    // Heurística de Manhattan
-    private int heuristic(List<String> state, List<String> goal) {
-        int distance = 0;
-        for (int i = 0; i < state.size(); i++) {
-            String tile = state.get(i);
-            if (!tile.equals("X")) {
-                int goalIndex = goal.indexOf(tile);
-                int currentRow = i / 3;
-                int currentCol = i % 3;
-                int goalRow = goalIndex / 3;
-                int goalCol = goalIndex % 3;
-                distance += Math.abs(currentRow - goalRow) + Math.abs(currentCol - goalCol);
-            }
-        }
-        return distance;
-    }
-
-    // Encontrar el índice de inserción para mantener el orden de prioridad
-    private int findInsertionIndex(Queue<List<String>> openSet, Queue<List<List<String>>> paths, int priority, List<String> goal) {
-        int index = 0;
-        for (List<String> state : openSet) {
-            List<List<String>> path = ((LinkedList<List<List<String>>>) paths).get(index);
-            int currentPriority = path.size() + heuristic(state, goal);
-            if (priority < currentPriority) {
-                return index;
-            }
-            index++;
-        }
-        return index;
     }
 
     // Validar movimientos

@@ -1,4 +1,4 @@
-package com.example.rompecabezas;
+package com.example.rompecabezas.view;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -15,6 +15,8 @@ import android.widget.ArrayAdapter;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.example.rompecabezas.R;
 
 import java.util.ArrayList;
 import java.util.Collections;

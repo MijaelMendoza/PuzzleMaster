@@ -7,9 +7,13 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.example.rompecabezas.view.QuickPlay;
+import com.example.rompecabezas.view.UserSelectionActivity;
+import com.example.rompecabezas.view.Versus;
+import com.example.rompecabezas.view.image_puzzle;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -64,7 +68,7 @@ public class MainActivity extends AppCompatActivity {
         bfs.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent bfs = new Intent(MainActivity.this, bfs.class);
+                Intent bfs = new Intent(MainActivity.this, com.example.rompecabezas.view.bfs.class);
                 startActivity(bfs);
             }
         });

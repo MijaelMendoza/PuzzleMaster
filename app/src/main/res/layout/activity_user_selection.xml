@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="30dp"
-    tools:context=".UserSelectionActivity"
+    tools:context=".view.UserSelectionActivity"
     android:background="#009688">
 
     <!-- Campo de texto para crear un nuevo usuario -->

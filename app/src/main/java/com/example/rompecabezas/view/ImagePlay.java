@@ -1,4 +1,4 @@
-package com.example.rompecabezas;
+package com.example.rompecabezas.view;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -16,6 +16,8 @@ import android.app.AlertDialog;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.example.rompecabezas.R;
 
 import java.io.IOException;
 import java.util.ArrayList;

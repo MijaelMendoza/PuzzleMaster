@@ -1,4 +1,6 @@
-package com.example.rompecabezas;
+package com.example.rompecabezas.view;
+
+import com.example.rompecabezas.model.Nodes;
 
 import java.util.*;
 

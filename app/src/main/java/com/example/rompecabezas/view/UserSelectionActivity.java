@@ -1,4 +1,4 @@
-package com.example.rompecabezas;
+package com.example.rompecabezas.view;
 
 import android.content.Context;
 import android.content.Intent;
@@ -13,6 +13,9 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.example.rompecabezas.MainActivity;
+import com.example.rompecabezas.R;
 
 import java.util.ArrayList;
 import java.util.Map;

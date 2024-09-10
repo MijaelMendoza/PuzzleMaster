@@ -1,4 +1,4 @@
-package com.example.rompecabezas;
+package com.example.rompecabezas.controller;
 
 import android.content.Context;
 import android.graphics.Bitmap;
