@@ -1,115 +1,119 @@
 package com.example.rompecabezas;
 
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
-import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.rompecabezas.view.QuickPlay;
-import com.example.rompecabezas.view.UserSelectionActivity;
-import com.example.rompecabezas.view.Versus;
-import com.example.rompecabezas.view.image_puzzle;
+import com.example.rompecabezas.controller.FormAdapter;
+import com.example.rompecabezas.controller.UserController;
+import com.example.rompecabezas.model.FormField;
+import com.example.rompecabezas.model.UserModel;
+import com.example.rompecabezas.view.HomeActivity;
+import com.example.rompecabezas.view.RegisterView;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
-    Button btquickplay, btimagenes, btversus, bfs, astar, btnChangeUser;
-    TextView tvUserInfo;
+    RecyclerView recyclerView;
+    Button btnLogin, btnRegister;
+    FormAdapter formAdapter;
+    UserController userController;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        if (!isUserSelected()) {
-            navigateToUserSelection();
-            return;
+        // Verificar si hay una sesión de usuario activa
+        SharedPreferences sharedPref = getSharedPreferences("user_session", MODE_PRIVATE);
+        int userId = sharedPref.getInt("user_id", -1);
+
+        if (userId != -1) {
+            // Usuario ya está logueado, redirigir a HomeActivity
+            Intent intent = new Intent(MainActivity.this, HomeActivity.class);
+            intent.putExtra("user_id", userId);
+            intent.putExtra("nombre_usuario", sharedPref.getString("nombre_usuario", ""));
+            intent.putExtra("correo", sharedPref.getString("correo", ""));
+            intent.putExtra("ruta_imagen", sharedPref.getString("ruta_imagen", ""));
+            startActivity(intent);
+            finish();  // Cerrar la pantalla de login
+            return;  // Detener la ejecución de más código en onCreate()
         }
 
+        // Configurar la vista del login si no hay sesión activa
         setContentView(R.layout.activity_main);
 
-        btquickplay = findViewById(R.id.btQuickPlay);
-        btimagenes = findViewById(R.id.btImagenes);
-        btversus = findViewById(R.id.btVersus);
-        bfs = findViewById(R.id.btBfs);
-        astar = findViewById(R.id.btAstar);
-        btnChangeUser = findViewById(R.id.btnChangeUser);
-        tvUserInfo = findViewById(R.id.tvUserInfo);
+        // Inicializar el controlador de usuario
+        userController = new UserController(this);
 
-        loadCurrentUserInfo();
+        recyclerView = findViewById(R.id.recyclerViewForm);
+        btnLogin = findViewById(R.id.btnLogin);
+        btnRegister = findViewById(R.id.btnRegister);
 
-        btquickplay.setOnClickListener(new View.OnClickListener() {
+        // Configurar campos de formulario
+        List<FormField> formFields = new ArrayList<>();
+        formFields.add(new FormField("Correo electrónico", android.text.InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS));
+        formFields.add(new FormField("Contraseña", android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD));
+
+        // Configurar adaptador del RecyclerView
+        formAdapter = new FormAdapter(this, formFields);
+        recyclerView.setAdapter(formAdapter);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+
+        // Listener para el botón de login
+        btnLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent qp = new Intent(MainActivity.this, QuickPlay.class);
-                startActivity(qp);
+                String email = formAdapter.getFormData(0); // Correo
+                String password = formAdapter.getFormData(1); // Contraseña
+
+                // Validar que los campos no estén vacíos
+                if (email != null && !email.isEmpty() && password != null && !password.isEmpty()) {
+                    // Verificar credenciales a través del controlador
+                    UserModel user = userController.obtenerUsuarioPorCorreoYContrasena(email, password);
+
+                    if (user != null) {
+                        // Guardar los datos del usuario en SharedPreferences
+                        SharedPreferences sharedPref = getSharedPreferences("user_session", MODE_PRIVATE);
+                        SharedPreferences.Editor editor = sharedPref.edit();
+                        editor.putInt("user_id", user.getId());
+                        editor.putString("nombre_usuario", user.getNombre_usuario());
+                        editor.putString("correo", user.getCorreo());
+                        editor.putString("ruta_imagen", user.getFoto_perfil()); // Guardar la ruta de la imagen
+                        editor.apply();  // Aplicar los cambios
+
+                        // Login exitoso, pasar los datos del usuario a HomeActivity
+                        Intent intent = new Intent(MainActivity.this, HomeActivity.class);
+                        intent.putExtra("user_id", user.getId());
+                        intent.putExtra("nombre_usuario", user.getNombre_usuario());
+                        intent.putExtra("correo", user.getCorreo());
+                        intent.putExtra("ruta_imagen", user.getFoto_perfil());
+                        startActivity(intent);
+                        finish(); // Cerrar la actividad de login
+                    } else {
+                        Toast.makeText(MainActivity.this, "Credenciales incorrectas", Toast.LENGTH_SHORT).show();
+                    }
+                } else {
+                    Toast.makeText(MainActivity.this, "Por favor, complete ambos campos", Toast.LENGTH_SHORT).show();
+                }
             }
         });
 
-        btimagenes.setOnClickListener(new View.OnClickListener() {
+        // Listener para el botón de registro
+        btnRegister.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent ip = new Intent(MainActivity.this, image_puzzle.class);
-                startActivity(ip);
+                Intent intent = new Intent(MainActivity.this, RegisterView.class);
+                startActivity(intent);
             }
         });
-
-        btversus.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent vs = new Intent(MainActivity.this, Versus.class);
-                startActivity(vs);
-            }
-        });
-
-        bfs.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent bfs = new Intent(MainActivity.this, com.example.rompecabezas.view.bfs.class);
-                startActivity(bfs);
-            }
-        });
-
-        astar.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent astar = new Intent(MainActivity.this, QuickPlay.class);
-                startActivity(astar);
-            }
-        });
-
-        btnChangeUser.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                navigateToUserSelection();
-            }
-        });
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        loadCurrentUserInfo(); // Actualizar la información del usuario cuando se reanuda la actividad
-    }
-
-    private boolean isUserSelected() {
-        SharedPreferences sharedPreferences = getSharedPreferences("Users", Context.MODE_PRIVATE);
-        return sharedPreferences.contains("currentUser");
-    }
-
-    private void navigateToUserSelection() {
-        Intent intent = new Intent(MainActivity.this, UserSelectionActivity.class);
-        startActivity(intent);
-        finish();
-    }
-
-    private void loadCurrentUserInfo() {
-        SharedPreferences sharedPreferences = getSharedPreferences("Users", Context.MODE_PRIVATE);
-        String currentUser = sharedPreferences.getString("currentUser", "N/A");
-        int currentScore = sharedPreferences.getInt(currentUser, 0);
-        tvUserInfo.setText("Usuario: " + currentUser + " - Puntaje: " + currentScore);
     }
 }

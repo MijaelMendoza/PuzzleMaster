@@ -6,7 +6,7 @@
     android:background="@drawable/ic_background"
     android:gravity="center"
     android:padding="16dp"
-    tools:context=".MainActivity">
+    tools:context=".view.RegisterView">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -14,41 +14,44 @@
         android:gravity="center"
         android:orientation="vertical">
 
+        <!-- Selección de foto de perfil -->
         <ImageView
+            android:id="@+id/ivProfile"
             android:layout_width="160dp"
             android:layout_height="160dp"
-            android:layout_marginBottom="64dp"
-            android:src="@drawable/ic_account_circle" />
+            android:layout_marginBottom="16dp"
+            android:src="@drawable/ic_account_circle"
+            android:contentDescription="Foto de perfil" />
 
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Toque para seleccionar una foto de perfil"
+            android:textColor="#FFFFFF"
+            android:layout_marginBottom="32dp"
+            android:gravity="center"/>
+
+        <!-- RecyclerView para los campos de formulario -->
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerViewForm"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_centerInParent="true"/>
+            android:layout_marginBottom="16dp" />
 
-        <Button
-            android:id="@+id/btnLogin"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_marginTop="32dp"
-            android:backgroundTint="#fff"
-            android:padding="18dp"
-            android:text="Iniciar Sesión"
-            android:textColor="#673AB7"
-            android:textSize="20dp" />
-
+        <!-- Botón de registro -->
         <Button
             android:id="@+id/btnRegister"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="32dp"
             android:backgroundTint="#4C209A"
             android:padding="18dp"
-            android:text="Registrarse"
+            android:text="Registrar"
             android:textColor="#fff"
             android:textSize="20dp" />
+
     </LinearLayout>
 
 </RelativeLayout>

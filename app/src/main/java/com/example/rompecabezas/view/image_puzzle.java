@@ -28,7 +28,8 @@ import android.Manifest;
 
 import com.example.rompecabezas.controller.PuzzleAdapter;
 import com.example.rompecabezas.R;
-import com.example.rompecabezas.model.Nodes;
+import com.example.rompecabezas.controller.SolverImage;
+import com.example.rompecabezas.model.Node;
 
 public class image_puzzle extends AppCompatActivity {
 
@@ -282,7 +283,7 @@ public class image_puzzle extends AppCompatActivity {
             }
         }
 
-        List<Nodes> solution = solver.solvePuzzle(initialState);
+        List<Node> solution = solver.solvePuzzle(initialState);
         if (solution != null) {
             animateSolution(solution); // Animar la solución en lugar de aplicar los pasos directamente
         } else {
@@ -290,14 +291,14 @@ public class image_puzzle extends AppCompatActivity {
         }
     }
 
-    private void animateSolution(List<Nodes> solution) {
+    private void animateSolution(List<Node> solution) {
         Runnable runnable = new Runnable() {
             int stepIndex = 0;
 
             @Override
             public void run() {
                 if (stepIndex < solution.size() - 1) {
-                    Nodes step = solution.get(stepIndex);
+                    Node step = solution.get(stepIndex);
                     updatePuzzleWithState(step.state); // Actualizar el puzzle con el estado actual
                     stepIndex++;
                     handler.postDelayed(this, ANIMATION_DELAY); // Continuar con el siguiente paso después de un delay

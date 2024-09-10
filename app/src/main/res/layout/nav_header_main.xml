@@ -1,0 +1,37 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/nav_header_height"
+    android:background="@drawable/shape_header"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:gravity="bottom">
+
+    <!-- Imagen de perfil -->
+    <ImageView
+        android:id="@+id/profile_image"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:layout_gravity="start"
+        android:src="@drawable/ic_menu_profile"
+        android:contentDescription="Profile Image" />
+
+    <!-- Nombre del usuario -->
+    <TextView
+        android:id="@+id/nav_user_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Nombre"
+        android:textColor="@android:color/white"
+        android:textSize="18sp"
+        android:layout_marginTop="8dp"
+        android:layout_gravity="start" />
+
+    <!-- Correo electrónico del usuario -->
+    <TextView
+        android:id="@+id/nav_user_email"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="invitado@gmail.com"
+        android:textColor="@android:color/white"
+        android:layout_gravity="start" />
+</LinearLayout>

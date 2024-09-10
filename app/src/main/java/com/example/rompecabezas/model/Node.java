@@ -3,13 +3,13 @@ package com.example.rompecabezas.model;
 import java.util.List;
 
 // Clase Node para manejar la cola de prioridad
-public class Nodes implements Comparable<Nodes> {
+public class Node implements Comparable<Node> {
     public List<String> state;
     public int gScore;
     public int fScore;
-    public Nodes parent;  // Referencia al nodo anterior en el camino
+    public Node parent;  // Referencia al nodo anterior en el camino
 
-    public Nodes(List<String> state, int gScore, int fScore, Nodes parent) {
+    public Node(List<String> state, int gScore, int fScore, Node parent) {
         this.state = state;
         this.gScore = gScore;
         this.fScore = fScore;
@@ -17,7 +17,7 @@ public class Nodes implements Comparable<Nodes> {
     }
 
     @Override
-    public int compareTo(Nodes other) {
+    public int compareTo(Node other) {
         return Integer.compare(this.fScore, other.fScore);
     }
 }

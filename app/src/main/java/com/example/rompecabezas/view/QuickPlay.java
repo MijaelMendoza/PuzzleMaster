@@ -14,7 +14,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.rompecabezas.R;
-import com.example.rompecabezas.model.Nodes;
+import com.example.rompecabezas.model.Node;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -252,12 +252,12 @@ public class QuickPlay extends AppCompatActivity {
 
     // Algoritmo A* modificado para encontrar la solución óptima
     private List<List<String>> aStar(List<String> initial, List<String> goal) {
-        PriorityQueue<Nodes> openSet = new PriorityQueue<>();
+        PriorityQueue<Node> openSet = new PriorityQueue<>();
         Set<List<String>> closedSet = new HashSet<>();
-        openSet.add(new Nodes(initial, 0, heuristic(initial, goal), null));
+        openSet.add(new Node(initial, 0, heuristic(initial, goal), null));
 
         while (!openSet.isEmpty()) {
-            Nodes currentNode = openSet.poll();
+            Node currentNode = openSet.poll();
             List<String> current = currentNode.state;
 
             if (current.equals(goal)) {
@@ -277,7 +277,7 @@ public class QuickPlay extends AppCompatActivity {
 
                     if (!closedSet.contains(neighbor)) {
                         int tentativeGScore = currentNode.gScore + 1;
-                        Nodes neighborNode = new Nodes(neighbor, tentativeGScore, tentativeGScore + heuristic(neighbor, goal), currentNode);
+                        Node neighborNode = new Node(neighbor, tentativeGScore, tentativeGScore + heuristic(neighbor, goal), currentNode);
                         openSet.add(neighborNode);
                     }
                 }
@@ -287,7 +287,7 @@ public class QuickPlay extends AppCompatActivity {
     }
 
     // Método para reconstruir la ruta desde el nodo final
-    private List<List<String>> reconstructPath(Nodes node) {
+    private List<List<String>> reconstructPath(Node node) {
         List<List<String>> path = new ArrayList<>();
         while (node != null) {
             path.add(0, node.state);
