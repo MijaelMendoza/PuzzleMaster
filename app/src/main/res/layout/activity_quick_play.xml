@@ -6,17 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".view.QuickPlay"
-    android:background="#009688">
-
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:gravity="right"
-        android:textSize="20dp"
-        android:text="Salir"
-        android:id="@+id/btsalir"
-        android:layout_weight="2"
-        />
+    android:background="@drawable/ic_background">
 
     <!-- Sección de Muestra -->
     <LinearLayout
@@ -27,9 +17,17 @@
         android:layout_marginTop="50dp"
         android:orientation="vertical">
 
-        <Space
+        <!-- Cronómetro -->
+        <TextView
+            android:id="@+id/timerText"
             android:layout_width="wrap_content"
-            android:layout_height="60dp" />
+            android:layout_height="wrap_content"
+            android:text="00:00"
+            android:textSize="30sp"
+            android:gravity="center"
+            android:layout_marginBottom="20dp"
+            android:textColor="#FFFFFF"
+            android:layout_gravity="center"/>
 
         <!-- Fila 1 -->
         <LinearLayout
@@ -143,7 +141,7 @@
         </LinearLayout>
         <Space
             android:layout_width="wrap_content"
-            android:layout_height="60dp" />
+            android:layout_height="30dp" />
     </LinearLayout>
 
     <LinearLayout
@@ -279,41 +277,53 @@
                 />
 
         </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_gravity="bottom"
+        android:weightSum="3"
+        android:padding="30dp"
+        android:orientation="horizontal"
+        >
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:text="Nuevo"
+            android:textSize="20dp"
+            android:id="@+id/aleatorio"
+            android:layout_weight="1"
+            />
 
         <Space
-            android:layout_width="match_parent"
-            android:layout_height="20dp"/>
+            android:layout_width="10dp"
+            android:layout_height="wrap_content"/>
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_alignParentBottom="true"
-            android:layout_gravity="center"
-            android:weightSum="4"
-            >
-            <Button
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_horizontal"
-                android:text="Nuevo"
-                android:id="@+id/aleatorio"
-                android:layout_weight="2"
-                />
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:text="Solver"
+            android:textSize="20dp"
+            android:id="@+id/solver"
+            android:layout_weight="1"
+            />
 
-            <Space
-                android:layout_width="10dp"
-                android:layout_height="wrap_content"/>
+        <Space
+            android:layout_width="10dp"
+            android:layout_height="wrap_content"/>
 
-            <Button
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_horizontal"
-                android:text="Solver"
-                android:id="@+id/solver"
-                android:layout_weight="2"
-                />
-        </LinearLayout>
-
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="20dp"
+            android:text="Salir"
+            android:id="@+id/btsalir"
+            android:layout_weight="1"
+            />
     </LinearLayout>
 
 </RelativeLayout>

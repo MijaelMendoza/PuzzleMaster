@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.SystemClock;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -29,9 +30,31 @@ public class QuickPlay extends AppCompatActivity {
 
     TextView[] puzzleTiles;
     TextView[] sampleTiles;
+    TextView timerText;  // TextView para mostrar el cronómetro
     Button btAleatorio, btSolver, btSalir;
     int pivot;
     Handler handler = new Handler();
+    private long startTime;  // Para registrar el inicio del cronómetro
+    private boolean isTimerRunning = false;
+
+    private boolean isFirstMove=true;
+
+    private final Runnable timerRunnable = new Runnable() {
+        @Override
+        public void run() {
+            if (isTimerRunning) {
+                long elapsedTime = SystemClock.elapsedRealtime() - startTime;
+                int seconds = (int) (elapsedTime / 1000) % 60;
+                int minutes = (int) (elapsedTime / 1000) / 60;
+
+                // Actualiza el TextView con el tiempo transcurrido
+                timerText.setText(String.format("%02d:%02d", minutes, seconds));
+
+                // Vuelve a ejecutar este runnable en 1 segundo
+                handler.postDelayed(this, 1000);
+            }
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,6 +64,7 @@ public class QuickPlay extends AppCompatActivity {
         btAleatorio = findViewById(R.id.aleatorio);
         btSolver = findViewById(R.id.solver);
         btSalir = findViewById(R.id.btsalir);
+        timerText = findViewById(R.id.timerText);
 
         puzzleTiles = new TextView[]{
                 findViewById(R.id.tvA), findViewById(R.id.tvB), findViewById(R.id.tvC),
@@ -56,6 +80,10 @@ public class QuickPlay extends AppCompatActivity {
 
         pivot = 4;
 
+        // Asigna los colores iniciales a las piezas del sample y del puzzle
+        setTiles(sampleTiles, getTextFromTiles(sampleTiles)); // Colores para las piezas de muestra
+        setTiles(puzzleTiles, getTextFromTiles(puzzleTiles)); // Colores para las piezas del puzzle
+
         for (int i = 0; i < puzzleTiles.length; i++) {
             final int index = i;
             puzzleTiles[i].setOnClickListener(new View.OnClickListener() {
@@ -69,11 +97,21 @@ public class QuickPlay extends AppCompatActivity {
         btAleatorio.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                // Genera listas de piezas para el puzzle y el sample
                 List<String> randomTilesForSample = generateSolvableTileList();
                 List<String> randomTilesForPuzzle = generateSolvableTileList();
+
+                // Asigna las piezas generadas a las vistas correspondientes
                 setTiles(sampleTiles, randomTilesForSample);
                 setTiles(puzzleTiles, randomTilesForPuzzle);
-                pivot = findPivot();
+
+                // Actualiza el pivot (la posición de la pieza vacía)
+                pivot = findPivot(randomTilesForPuzzle);  // Busca en la nueva lista generada
+                System.out.println("Nuevo pivot: " + pivot);  // Verifica que el pivote se actualice
+
+
+                // Inicia el cronómetro cuando el puzzle se genera
+                startTimer();
             }
         });
 
@@ -96,6 +134,28 @@ public class QuickPlay extends AppCompatActivity {
                 finish();
             }
         });
+    }
+
+    // Inicia el cronómetro
+    private void startTimer() {
+        startTime = SystemClock.elapsedRealtime();
+        isTimerRunning = true;
+        handler.post(timerRunnable);  // Inicia el runnable que actualiza el cronómetro
+    }
+
+    // Detiene el cronómetro
+    private void stopTimer() {
+        isTimerRunning = false;
+        handler.removeCallbacks(timerRunnable);  // Detiene el runnable
+    }
+
+    // Método para extraer el texto de los TextViews y retornarlo como lista
+    private List<String> getTextFromTiles(TextView[] tileViews) {
+        List<String> tiles = new ArrayList<>();
+        for (TextView tileView : tileViews) {
+            tiles.add(tileView.getText().toString());
+        }
+        return tiles;
     }
 
     private List<String> generateSolvableTileList() {
@@ -139,31 +199,82 @@ public class QuickPlay extends AppCompatActivity {
             final int index = i;
             handler.post(() -> {
                 tileViews[index].setText(tile);
-                if (tile.equals("X")) {
-                    tileViews[index].setBackgroundColor(getResources().getColor(R.color.white));
-                } else {
-                    tileViews[index].setBackgroundColor(getResources().getColor(R.color.blue));
-                }
+                tileViews[index].setBackgroundColor(getColorForTile(tile));
             });
         }
     }
 
-    private int findPivot() {
-        for (int i = 0; i < puzzleTiles.length; i++) {
-            if (puzzleTiles[i].getText().toString().equals("X")) {
-                return i;
-            }
+    private int getColorForTile(String tile) {
+        switch (tile) {
+            case "A":
+                return getResources().getColor(R.color.color_A);
+            case "B":
+                return getResources().getColor(R.color.color_B);
+            case "C":
+                return getResources().getColor(R.color.color_C);
+            case "D":
+                return getResources().getColor(R.color.color_D);
+            case "E":
+                return getResources().getColor(R.color.color_E);
+            case "F":
+                return getResources().getColor(R.color.color_F);
+            case "G":
+                return getResources().getColor(R.color.color_G);
+            case "H":
+                return getResources().getColor(R.color.color_H);
+            case "X":
+                return getResources().getColor(R.color.color_X);
+            default:
+                return getResources().getColor(R.color.color_X); // Por defecto color blanco
         }
-        return -1;
     }
 
-    private void Move(int index) {
-        if (isAdjacent(index, pivot)) {
-            swap(index, pivot);
-            pivot = index;
 
-            if (isWin()) {
-                showWinMessage();
+    private int findPivotSolver(TextView[] tileViews) {
+        for (int i = 0; i < tileViews.length; i++) {
+            if (tileViews[i].getText().toString().equals("X")) {
+                return i;  // Devuelve la posición de la pieza vacía "X"
+            }
+        }
+        return -1;  // Retorna -1 si no se encuentra la pieza vacía
+    }
+    private int findPivot(List<String> tiles) {
+        // Busca la posición de la pieza vacía "X" en la lista generada
+        for (int i = 0; i < tiles.size(); i++) {
+            if (tiles.get(i).equals("X")) {
+                return i;  // Devuelve la posición de la pieza vacía "X"
+            }
+        }
+        return -1;  // Retorna -1 si no se encuentra la pieza vacía
+    }
+
+
+    private void Move(int index) {
+        if(isFirstMove){
+            startTimer();
+            isFirstMove = false;
+            if (isAdjacent(index, pivot)) {
+                swap(index, pivot);
+                pivot = index;
+
+                if (isWin()) {
+                    stopTimer();  // Detiene el cronómetro cuando se gana
+
+                    long elapsedTime = SystemClock.elapsedRealtime() - startTime;
+                    showWinMessage(elapsedTime);  // Pasa el tiempo transcurrido al mensaje de victoria
+                }
+            }
+        } else {
+            if (isAdjacent(index, pivot)) {
+                swap(index, pivot);
+                pivot = index;
+
+                if (isWin()) {
+                    stopTimer();  // Detiene el cronómetro cuando se gana
+
+                    long elapsedTime = SystemClock.elapsedRealtime() - startTime;
+                    showWinMessage(elapsedTime);  // Pasa el tiempo transcurrido al mensaje de victoria
+                }
             }
         }
     }
@@ -198,13 +309,15 @@ public class QuickPlay extends AppCompatActivity {
         return true;
     }
 
-    private void showWinMessage() {
-        // Añadir 500 puntos al usuario actual
+    private void showWinMessage(long elapsedTime) {
+        int seconds = (int) (elapsedTime / 1000) % 60;
+        int minutes = (int) (elapsedTime / 1000) / 60;
+
         addPointsToCurrentUser(500);
 
         new AlertDialog.Builder(this)
                 .setTitle("¡Ganaste!")
-                .setMessage("Has completado el rompecabezas, Obtuviste 500 puntos")
+                .setMessage("Has completado el rompecabezas en " + minutes + " minutos y " + seconds + " segundos. Obtuviste 500 puntos.")
                 .setPositiveButton("OK", null)
                 .show();
     }
@@ -244,7 +357,7 @@ public class QuickPlay extends AppCompatActivity {
                 final int delay = i * 250;
                 handler.postDelayed(() -> {
                     setTiles(puzzleTiles, step);
-                    pivot = findPivot();
+                    pivot = findPivotSolver(puzzleTiles);
                 }, delay);
             }
         }

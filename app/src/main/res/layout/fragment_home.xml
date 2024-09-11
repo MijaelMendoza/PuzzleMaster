@@ -21,17 +21,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textSize="30dp"
-        android:text="A*"
-        android:id="@+id/btAstar"
-        android:backgroundTint="#FC063593"
-        android:textColor="#FFF" />
-
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textSize="30dp"
-        android:text="BFS"
-        android:id="@+id/btBfs"
+        android:text="Juego Normal"
+        android:id="@+id/btNormal"
         android:backgroundTint="#FC063593"
         android:textColor="#FFF" />
 

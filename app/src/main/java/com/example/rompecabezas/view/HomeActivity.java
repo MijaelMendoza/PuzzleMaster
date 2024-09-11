@@ -4,6 +4,9 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -14,6 +17,7 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
+import com.bumptech.glide.Glide;
 import com.example.rompecabezas.MainActivity;
 import com.example.rompecabezas.R;
 import com.google.android.material.navigation.NavigationView;
@@ -40,6 +44,14 @@ public class HomeActivity extends AppCompatActivity {
         toggle = new ActionBarDrawerToggle(this, drawerLayout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawerLayout.addDrawerListener(toggle);
         toggle.syncState();
+
+        // Obtener datos del usuario desde el Intent
+        String nombreUsuario = getIntent().getStringExtra("nombre_usuario");
+        String correo = getIntent().getStringExtra("correo");
+        String rutaImagen = getIntent().getStringExtra("ruta_imagen");
+
+        // Actualizar el header del NavigationView
+        actualizarHeader(nombreUsuario, correo, rutaImagen);
 
         // Cargar el HomeFragment por defecto
         if (savedInstanceState == null) {
@@ -80,6 +92,28 @@ public class HomeActivity extends AppCompatActivity {
                 return true;
             }
         });
+
+    }
+
+    // Método para actualizar los datos del usuario en el header del NavigationView
+    private void actualizarHeader(String nombreUsuario, String correo, String rutaImagen) {
+        View headerView = navigationView.getHeaderView(0); // Obtener el header del NavigationView
+        TextView navUserName = headerView.findViewById(R.id.nav_user_name);
+        TextView navUserEmail = headerView.findViewById(R.id.nav_user_email);
+        ImageView navProfileImage = headerView.findViewById(R.id.profile_image);
+
+        navUserName.setText(nombreUsuario);
+        navUserEmail.setText(correo);
+
+        // Usar Glide para cargar la imagen
+        if (rutaImagen != null && !rutaImagen.isEmpty()) {
+            Glide.with(this)
+                    .load(rutaImagen)  // Cargar la imagen desde la ruta
+                    .placeholder(R.drawable.ic_menu_profile)  // Imagen por defecto mientras carga
+                    .into(navProfileImage);
+        } else {
+            navProfileImage.setImageResource(R.drawable.ic_menu_profile); // Imagen por defecto si no hay ruta
+        }
     }
 
     // Método para cargar el fragmento

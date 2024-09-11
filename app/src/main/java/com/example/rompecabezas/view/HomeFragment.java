@@ -26,10 +26,9 @@ public class HomeFragment extends Fragment {
 
         // Inicializar los botones en el fragmento
         Button btquickplay = rootView.findViewById(R.id.btQuickPlay);
-        Button btastar = rootView.findViewById(R.id.btAstar);
-        Button btbfs = rootView.findViewById(R.id.btBfs);
         Button btimagenes = rootView.findViewById(R.id.btImagenes);
         Button btversus = rootView.findViewById(R.id.btVersus);
+        Button btnormal = rootView.findViewById(R.id.btNormal);
 
         btquickplay.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -52,6 +51,14 @@ public class HomeFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(getActivity(), Versus.class);
+                startActivity(intent);
+            }
+        });
+
+        btnormal.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getActivity(), NormalPlay.class);
                 startActivity(intent);
             }
         });

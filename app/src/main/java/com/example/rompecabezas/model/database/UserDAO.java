@@ -63,6 +63,36 @@ public class UserDAO {
         return usuarios;
     }
 
+    // Método para obtener un usuario por su ID
+    public UserModel obtenerUsuarioPorId(int id) {
+        UserModel usuario = null;
+        String query = "SELECT * FROM " + DatabaseHelper.TABLE_USUARIOS + " WHERE id = ?";
+        Cursor cursor = database.rawQuery(query, new String[]{String.valueOf(id)});
+
+        if (cursor.moveToFirst()) {
+            try {
+                usuario = new UserModel();
+                // Asegúrate de que los nombres de las columnas coincidan con los nombres exactos de tu tabla
+                usuario.setId(cursor.getInt(cursor.getColumnIndexOrThrow("id")));
+                usuario.setNombre_usuario(cursor.getString(cursor.getColumnIndexOrThrow("nombre_usuario")));
+                usuario.setCorreo(cursor.getString(cursor.getColumnIndexOrThrow("correo")));
+                usuario.setFoto_perfil(cursor.getString(cursor.getColumnIndexOrThrow("foto_perfil")));
+                usuario.setContrasena(cursor.getString(cursor.getColumnIndexOrThrow("contrasena")));
+                usuario.setPregunta_seguridad(cursor.getString(cursor.getColumnIndexOrThrow("pregunta_seguridad")));
+                usuario.setRespuesta_seguridad(cursor.getString(cursor.getColumnIndexOrThrow("respuesta_seguridad")));
+                usuario.setFecha_creacion(cursor.getString(cursor.getColumnIndexOrThrow("fecha_creacion")));
+                usuario.setNivel(cursor.getInt(cursor.getColumnIndexOrThrow("nivel")));
+                usuario.setExperiencia_acumulada(cursor.getInt(cursor.getColumnIndexOrThrow("experiencia_acumulada")));
+            } catch (IllegalArgumentException e) {
+                // Manejar el caso donde las columnas no existen en la tabla
+                e.printStackTrace();
+            }
+        }
+        cursor.close();
+        return usuario;
+    }
+
+
     // Método para actualizar un usuario
     public int actualizarUsuario(UserModel usuario) {
         ContentValues values = new ContentValues();
@@ -79,6 +109,7 @@ public class UserDAO {
         return database.update(DatabaseHelper.TABLE_USUARIOS, values, "id = ?", new String[]{String.valueOf(usuario.getId())});
     }
 
+
     // Método para eliminar un usuario
     public void eliminarUsuario(int id) {
         database.delete(DatabaseHelper.TABLE_USUARIOS, "id = ?", new String[]{String.valueOf(id)});
@@ -92,11 +123,10 @@ public class UserDAO {
         Cursor cursor = database.rawQuery(query, new String[]{correo, contrasena});
 
         if (cursor.moveToFirst()) {
-            // Usar getColumnIndexOrThrow para asegurarte de que los nombres de las columnas sean correctos
             usuario = new UserModel();
-            usuario.setId(cursor.getInt(cursor.getColumnIndexOrThrow("id")));  // Verifica que "id" sea correcto
-            usuario.setNombre_usuario(cursor.getString(cursor.getColumnIndexOrThrow("nombre_usuario")));  // Verifica que "nombre_usuario" sea correcto
-            usuario.setCorreo(cursor.getString(cursor.getColumnIndexOrThrow("correo")));  // Verifica que "correo" sea correcto
+            usuario.setId(cursor.getInt(cursor.getColumnIndexOrThrow("id")));
+            usuario.setNombre_usuario(cursor.getString(cursor.getColumnIndexOrThrow("nombre_usuario")));
+            usuario.setCorreo(cursor.getString(cursor.getColumnIndexOrThrow("correo")));
             usuario.setFoto_perfil(cursor.getString(cursor.getColumnIndexOrThrow("foto_perfil")));
         }
         cursor.close();

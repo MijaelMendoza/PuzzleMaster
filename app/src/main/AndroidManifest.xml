@@ -20,6 +20,9 @@
         android:theme="@style/Theme.Rompecabezas"
         tools:targetApi="31">
         <activity
+            android:name=".view.NormalPlay"
+            android:exported="false" />
+        <activity
             android:name=".view.RegisterView"
             android:exported="false" />
         <activity

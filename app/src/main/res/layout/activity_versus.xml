@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".view.Versus"
-    android:background="#009688">
+    android:background="@drawable/ic_background">
 
     <!-- Spinner para seleccionar la dificultad -->
     <Spinner

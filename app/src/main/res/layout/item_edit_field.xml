@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="8dp">
+
+    <TextView
+        android:id="@+id/tvLabel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Label"
+        android:textSize="20sp"
+        android:textColor="@android:color/white"
+        />
+
+    <EditText
+        android:id="@+id/etValue"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/rounded_corner"
+        android:padding="16dp"
+        android:textColor="#fff"
+        android:textColorHint="#fff" />
+</LinearLayout>

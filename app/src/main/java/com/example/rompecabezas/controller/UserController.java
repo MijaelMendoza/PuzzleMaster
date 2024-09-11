@@ -20,10 +20,7 @@ public class UserController {
     public long registrarUsuario(String password, String nombre, String correo, String fotoPerfil, String preguntaSeguridad,
                                  String respuestaSeguridad, String fechaCreacion, int nivel, int experienciaAcumulada) {
 
-        // Crear un nuevo objeto UserModel
         UserModel usuario = new UserModel(password, nombre, correo, fotoPerfil, preguntaSeguridad, respuestaSeguridad, fechaCreacion, nivel, experienciaAcumulada);
-
-        // Insertar usuario en la base de datos a través del DAO
         return userDAO.insertarUsuario(usuario);
     }
 
@@ -32,15 +29,17 @@ public class UserController {
         return userDAO.obtenerUsuarios();
     }
 
+    // Método para obtener un usuario por ID
+    public UserModel obtenerUsuarioPorId(int id) {
+        return userDAO.obtenerUsuarioPorId(id);
+    }
+
     // Método para actualizar un usuario existente
     public int actualizarUsuario(String password, int id, String nombre, String correo, String fotoPerfil, String preguntaSeguridad,
                                  String respuestaSeguridad, String fechaCreacion, int nivel, int experienciaAcumulada) {
 
-        // Crear un nuevo objeto UserModel con los datos actualizados
         UserModel usuario = new UserModel(password, nombre, correo, fotoPerfil, preguntaSeguridad, respuestaSeguridad, fechaCreacion, nivel, experienciaAcumulada);
         usuario.setId(id);  // Establecer el ID del usuario que se va a actualizar
-
-        // Actualizar el usuario en la base de datos a través del DAO
         return userDAO.actualizarUsuario(usuario);
     }
 
@@ -53,5 +52,4 @@ public class UserController {
     public UserModel obtenerUsuarioPorCorreoYContrasena(String correo, String contrasena) {
         return userDAO.obtenerUsuarioPorCorreoYContrasena(correo, contrasena);
     }
-
 }
