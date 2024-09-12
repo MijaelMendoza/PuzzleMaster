@@ -25,9 +25,21 @@
             android:text="00:00"
             android:textSize="30sp"
             android:gravity="center"
-            android:layout_marginBottom="20dp"
             android:textColor="#FFFFFF"
             android:layout_gravity="center"/>
+
+        <TextView
+            android:id="@+id/moveCounter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Movimientos: 0"
+            android:textSize="20sp"
+            android:textColor="#FFFFFF"
+            android:layout_gravity="center"
+            android:layout_below="@id/timerText"
+            android:layout_marginBottom="20dp"
+            android:layout_marginTop="10dp" />
+
 
         <!-- Fila 1 -->
         <LinearLayout
@@ -141,7 +153,7 @@
         </LinearLayout>
         <Space
             android:layout_width="wrap_content"
-            android:layout_height="30dp" />
+            android:layout_height="10dp" />
     </LinearLayout>
 
     <LinearLayout

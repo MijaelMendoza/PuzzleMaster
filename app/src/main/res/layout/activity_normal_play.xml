@@ -7,25 +7,50 @@
     android:padding="16dp"
     android:background="@drawable/ic_background">
 
-    <!-- Spinner para seleccionar la dificultad -->
-    <Spinner
-        android:id="@+id/spinnerDificultad"
-        android:layout_width="wrap_content"
-        android:layout_height="48dp"
-        android:entries="@array/dificultades"
-        android:layout_gravity="center"
-        android:layout_marginBottom="16dp"/>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:weightSum="3"
+        android:gravity="center">
+
+        <!-- Spinner para seleccionar la dificultad -->
+        <Spinner
+            android:id="@+id/spinnerDificultad"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:entries="@array/dificultades"
+            android:layout_gravity="center"
+            android:layout_marginBottom="16dp"
+            android:layout_weight="1"
+            />
+
+        <TextView
+            android:id="@+id/cronometro"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="00:00"
+            android:textSize="30sp"
+            android:gravity="center"
+            android:layout_marginBottom="20dp"
+            android:textColor="#FFFFFF"
+            android:layout_gravity="center"
+            android:layout_weight="1"
+            />
+
+    </LinearLayout>
 
     <TextView
-        android:id="@+id/cronometro"
+        android:id="@+id/moveCounter"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="00:00"
-        android:textSize="30sp"
+        android:text="Movimientos: 0"
+        android:textSize="24sp"
         android:gravity="center"
-        android:layout_marginBottom="20dp"
         android:textColor="#FFFFFF"
-        android:layout_gravity="center"/>
+        android:layout_gravity="center"
+        android:layout_marginBottom="20dp"
+        />
 
     <!-- Tablero de Meta -->
     <GridLayout

@@ -1,5 +1,7 @@
+// Clase principal de la vista del puzzle
 package com.example.rompecabezas.view;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -8,14 +10,16 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.GridView;
-import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import java.io.IOException;
@@ -36,64 +40,171 @@ public class image_puzzle extends AppCompatActivity {
     private static final int PICK_IMAGE_REQUEST = 1;
     private static final int TAKE_PHOTO_REQUEST = 2;
     private static final int CAMERA_PERMISSION_REQUEST = 100;
-    private static final int ANIMATION_DELAY = 500; // 500ms delay for each move
+    private static final int ANIMATION_DELAY = 200; // 500ms delay for each move
 
-    private GridView gridView;
-    private ImageView imageViewOriginal;  // ImageView para mostrar la imagen original
-    private Bitmap originalImage;  // Imagen original
-    private ArrayList<Bitmap> pieces;
-    private PuzzleAdapter puzzleAdapter;
+    private GridView gridView, gridViewSolved;
+    private ArrayList<Bitmap> pieces, solvedPieces;
+    private PuzzleAdapter puzzleAdapter, solvedPuzzleAdapter;
     private SolverImage solver;
     private Handler handler;
     private Random random;
+
+    private TextView tvTimer, tvMoves;
+    private int movesCount = 0;
+    private long startTime = 0;
+    private boolean isTimerRunning = false;
+    private Runnable timerRunnable;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_image_puzzle);
 
-        imageViewOriginal = findViewById(R.id.imageViewOriginal);  // Inicializar ImageView
+        // Inicializar GridViews
         gridView = findViewById(R.id.gridView);
+        gridViewSolved = findViewById(R.id.gridViewSolved);
+        tvTimer = findViewById(R.id.tvTimer);  // Cronómetro
+        tvMoves = findViewById(R.id.tvMoves);
+
         pieces = new ArrayList<>();
+        solvedPieces = new ArrayList<>();
+
+        // Inicializar los adaptadores para ambos GridViews
         puzzleAdapter = new PuzzleAdapter(this, pieces);
+        solvedPuzzleAdapter = new PuzzleAdapter(this, solvedPieces);
+
         gridView.setAdapter(puzzleAdapter);
+        gridViewSolved.setAdapter(solvedPuzzleAdapter);
 
-        solver = new SolverImage();  // Inicializar Solver
-        handler = new Handler(); // Inicializar el Handler
-        random = new Random(); // Inicializar el Random
-
-        Button btnChooseImage = findViewById(R.id.btnChooseImage);
-        btnChooseImage.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                chooseImageFromGallery();
+        // Configurar clics en el GridView para que el usuario pueda mover las piezas
+        gridView.setOnItemClickListener((parent, view, position, id) -> {
+            if (!isTimerRunning) {
+                startTimer();
             }
+            movePiece(position);  // Mover la pieza seleccionada
         });
 
+        // Botones de interacción
+        Button btnChooseImage = findViewById(R.id.btnChooseImage);
+        btnChooseImage.setOnClickListener(view -> chooseImageFromGallery());
+
         Button btnTakePhoto = findViewById(R.id.btnTakePhoto);
-        btnTakePhoto.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                // Verificar permisos antes de intentar tomar una foto
-                if (checkAndRequestPermissions()) {
-                    takePhoto();
-                }
+        btnTakePhoto.setOnClickListener(view -> {
+            if (checkAndRequestPermissions()) {
+                takePhoto();
             }
         });
 
         Button btnSolver = findViewById(R.id.btnSolver);
-        btnSolver.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                try {
-                    solvePuzzle();  // Llamar al método solvePuzzle dentro de un bloque try-catch
-                } catch (Exception e) {
-                    Toast.makeText(image_puzzle.this, "Error al resolver el puzzle: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    e.printStackTrace();  // Imprimir el stack trace para depuración
-                }
+        btnSolver.setOnClickListener(view -> {
+            resetTimerAndMoves();  // Reiniciar tiempo y movimientos
+            startTimer();  // Iniciar el cronómetro cuando el solver se use
+            try {
+                solvePuzzle();
+            } catch (Exception e) {
+                Log.d("error", e.getMessage());
+                Toast.makeText(image_puzzle.this, "Error al resolver el puzzle: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                e.printStackTrace();
             }
         });
 
+        handler = new Handler();
+        random = new Random();
+        solver = new SolverImage(); // Inicializar solver
+    }
+
+    // Método para reiniciar el cronómetro y el contador de movimientos
+    private void resetTimerAndMoves() {
+        stopTimer();
+        movesCount = 0;
+        tvMoves.setText("Movimientos: 0");
+        tvTimer.setText("Tiempo: 00:00");
+    }
+
+    // Método para iniciar el cronómetro
+    private void startTimer() {
+        startTime = System.currentTimeMillis();
+        isTimerRunning = true;
+
+        timerRunnable = new Runnable() {
+            @Override
+            public void run() {
+                long elapsedTime = System.currentTimeMillis() - startTime;
+                int seconds = (int) (elapsedTime / 1000);
+                int minutes = seconds / 60;
+                seconds = seconds % 60;
+
+                // Actualizar el cronómetro en pantalla
+                tvTimer.setText(String.format("Tiempo: %02d:%02d", minutes, seconds));
+
+                // Ejecutar de nuevo el runnable cada segundo
+                handler.postDelayed(this, 1000);
+            }
+        };
+        handler.post(timerRunnable);
+    }
+
+    // Método para detener el cronómetro
+    private void stopTimer() {
+        handler.removeCallbacks(timerRunnable);
+        isTimerRunning = false;
+    }
+
+    // Método para actualizar el contador de movimientos
+    private void updateMoveCount() {
+        movesCount++;
+        tvMoves.setText("Movimientos: " + movesCount);
+    }
+
+    // Método para mover la pieza si es posible
+    private void movePiece(int position) {
+        int emptyPosition = pieces.indexOf(null);
+
+        if (isAdjacent(emptyPosition, position)) {
+            Collections.swap(pieces, emptyPosition, position);
+            puzzleAdapter.notifyDataSetChanged();
+            updateMoveCount();  // Incrementar el contador de movimientos
+
+            if (isSolved()) {
+                stopTimer();
+                showCompletionDialog(false);  // Mostrar mensaje de victoria para el usuario
+            }
+        }
+    }
+
+    // Mostrar un diálogo con el tiempo y movimientos al completar el puzzle
+    private void showCompletionDialog(boolean isSolver) {
+        String message;
+        long elapsedTime = System.currentTimeMillis() - startTime;
+        int seconds = (int) (elapsedTime / 1000);
+        int minutes = seconds / 60;
+        seconds = seconds % 60;
+
+        if (isSolver) {
+            message = String.format("El solver resolvió el puzzle en %02d:%02d y %d movimientos.", minutes, seconds, movesCount);
+        } else {
+            message = String.format("¡Felicidades! Resolviste el puzzle en %02d:%02d y %d movimientos.", minutes, seconds, movesCount);
+        }
+
+        new AlertDialog.Builder(this)
+                .setTitle(isSolver ? "Puzzle Resuelto Automáticamente" : "¡Puzzle Completado!")
+                .setMessage(message)
+                .setPositiveButton("Nuevo Puzzle", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        resetPuzzle();  // Reiniciar el puzzle cuando se presione "Nuevo Puzzle"
+                    }
+                })
+                .setCancelable(false)
+                .show();
+    }
+
+    // Método para reiniciar el puzzle
+    private void resetPuzzle() {
+        shufflePuzzle();  // Desordenar el puzzle
+        resetTimerAndMoves();  // Reiniciar el cronómetro y movimientos
+        puzzleAdapter.notifyDataSetChanged();
+        solvedPuzzleAdapter.notifyDataSetChanged();
     }
 
     private boolean checkAndRequestPermissions() {
@@ -112,20 +223,20 @@ public class image_puzzle extends AppCompatActivity {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == CAMERA_PERMISSION_REQUEST) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                // Permisos concedidos, puedes tomar la foto
                 takePhoto();
             } else {
-                // Permisos denegados
                 Toast.makeText(this, "Los permisos de cámara y almacenamiento son necesarios para esta función", Toast.LENGTH_SHORT).show();
             }
         }
     }
 
+    // Seleccionar una imagen de la galería
     private void chooseImageFromGallery() {
         Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
         startActivityForResult(intent, PICK_IMAGE_REQUEST);
     }
 
+    // Tomar una foto con la cámara
     private void takePhoto() {
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         if (intent.resolveActivity(getPackageManager()) != null) {
@@ -154,89 +265,162 @@ public class image_puzzle extends AppCompatActivity {
         }
     }
 
-    private void updatePuzzleWithImage(Bitmap image) {
-        originalImage = image;  // Guardar la imagen original
-        imageViewOriginal.setImageBitmap(originalImage);  // Mostrar la imagen original
 
-        int gridSize = 3;  // Para un puzzle 3x3
+    // Método para desordenar el puzzle
+    private void shufflePuzzle() {
+        do {
+            Collections.shuffle(pieces);
+        } while (!isSolvable());
+    }
+
+    // Actualizar el puzzle con IDs únicos para cada pieza en lugar de hashCode
+    private void updatePuzzleWithImage(Bitmap image) {
+        int gridSize = 3;  // Suponiendo un puzzle 3x3
         int pieceWidth = image.getWidth() / gridSize;
         int pieceHeight = image.getHeight() / gridSize;
 
-        pieces.clear();  // Limpiar la lista de piezas existente
+        pieces.clear();
+        solvedPieces.clear();
 
-        // Cortar la imagen en piezas y añadirlas a la lista de piezas en orden
+        int idCounter = 1; // Contador para asignar un ID único a cada pieza
+
+        // Cortar la imagen en piezas para ambos GridViews
         for (int row = 0; row < gridSize; row++) {
             for (int col = 0; col < gridSize; col++) {
+                int x = col * pieceWidth;
+                int y = row * pieceHeight;
                 if (row == gridSize - 1 && col == gridSize - 1) {
-                    pieces.add(null); // Añadir la pieza vacía
+                    // La última pieza es la vacía
+                    pieces.add(null);
+                    solvedPieces.add(null);
                 } else {
-                    int x = col * pieceWidth;
-                    int y = row * pieceHeight;
                     Bitmap piece = Bitmap.createBitmap(image, x, y, pieceWidth, pieceHeight);
-                    pieces.add(piece);
+                    pieces.add(piece);  // Para el puzzle interactivo
+                    solvedPieces.add(piece);  // Para el puzzle resuelto
+                    // Asignar un ID único a cada pieza
+                    piece.setDensity(idCounter++); // Usamos el ID en lugar del hashCode
                 }
             }
         }
 
-        // Desordenar el puzzle de manera válida
+        // Desordenar solo el puzzle interactivo
         shufflePuzzle();
 
-        // Actualizar el adaptador del GridView
+        // Actualizar ambos GridViews
         puzzleAdapter.notifyDataSetChanged();
-
-        // Configurar el listener de clics para las piezas del puzzle
-        gridView.setOnItemClickListener((parent, view, position, id) -> {
-            movePiece(position);
-        });
+        solvedPuzzleAdapter.notifyDataSetChanged();
     }
 
-    // Método para desordenar el puzzle utilizando movimientos válidos
-    private void shufflePuzzle() {
-        int emptyPosition = pieces.indexOf(null);
-        int gridSize = 3;  // Tamaño de la cuadrícula 3x3
-        int[] dx = {-1, 1, 0, 0};  // Movimientos posibles en X
-        int[] dy = {0, 0, -1, 1};  // Movimientos posibles en Y
+    // Método para verificar si el puzzle es resolvible
+    private boolean isSolvable() {
+        List<Bitmap> puzzlePieces = new ArrayList<>(pieces);
+        int gridSize = 3;  // Tamaño del puzzle (3x3)
 
-        for (int i = 0; i < 100; i++) {  // Realiza 100 movimientos aleatorios
-            int emptyRow = emptyPosition / gridSize;
-            int emptyCol = emptyPosition % gridSize;
-
-            // Escoge una dirección aleatoria
-            int direction = random.nextInt(4);
-            int newRow = emptyRow + dx[direction];
-            int newCol = emptyCol + dy[direction];
-
-            if (newRow >= 0 && newRow < gridSize && newCol >= 0 && newCol < gridSize) {
-                int newPosition = newRow * gridSize + newCol;
-                // Intercambia la posición vacía con la nueva posición válida
-                Collections.swap(pieces, emptyPosition, newPosition);
-                emptyPosition = newPosition;  // Actualiza la posición vacía
+        // Extraer posiciones de piezas (ignorando el espacio vacío)
+        List<Integer> tilePositions = new ArrayList<>();
+        for (Bitmap piece : puzzlePieces) {
+            if (piece != null) {
+                tilePositions.add(piece.getDensity());  // Usar el ID único
             }
+        }
+
+        int inversions = 0;
+        for (int i = 0; i < tilePositions.size(); i++) {
+            for (int j = i + 1; j < tilePositions.size(); j++) {
+                if (tilePositions.get(i) > tilePositions.get(j)) {
+                    inversions++;
+                }
+            }
+        }
+
+        // Encontrar la posición de la pieza vacía
+        int emptyRow = (pieces.indexOf(null)) / gridSize; // Fila donde está el espacio vacío
+
+        // Si el gridSize es impar, el número de inversiones debe ser par.
+        if (gridSize % 2 != 0) {
+            return inversions % 2 == 0;
+        } else {
+            // Para gridSize par, el puzzle es resolvible si:
+            return (emptyRow % 2 == 0) == (inversions % 2 != 0);
         }
     }
 
-    // Método para mover la pieza si es posible
-    private void movePiece(int position) {
-        // Obtener la posición de la pieza vacía
-        int emptyPosition = pieces.indexOf(null);
+    // Método para resolver el puzzle usando A* y el nuevo sistema de IDs
+    private void solvePuzzle() {
+        List<String> initialState = new ArrayList<>();
+        List<String> goalState = new ArrayList<>();
 
-        // Comprobar si la posición seleccionada es adyacente a la vacía
-        if (isAdjacent(emptyPosition, position)) {
-            // Intercambiar la pieza seleccionada con la vacía
-            Collections.swap(pieces, emptyPosition, position);
+        // Crear el estado inicial basado en los IDs de las piezas actuales
+        for (Bitmap piece : pieces) {
+            if (piece != null) {
+                initialState.add(String.valueOf(piece.getDensity()));  // Usamos el ID único
+            } else {
+                initialState.add("0");  // La pieza vacía se representa con "0"
+            }
+        }
+
+        // Crear el estado objetivo basado en los IDs de las piezas resueltas
+        for (Bitmap piece : solvedPieces) {
+            if (piece != null) {
+                goalState.add(String.valueOf(piece.getDensity()));  // Usamos el ID único
+            } else {
+                goalState.add("0");  // La última pieza vacía
+            }
+        }
+
+        Log.d("Initial State", initialState.toString());
+        Log.d("Goal State", goalState.toString());
+
+        // Establecer el estado objetivo en el solver
+        solver.setGoalState(goalState);
+
+        // Resolver el puzzle
+        List<Node> solution = solver.solvePuzzle(initialState);
+        if (solution != null) {
+            Log.d("Solution", solution.toString());
+            animateSolution(solution);
+        } else {
+            Toast.makeText(this, "No se encontró una solución.", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    // Resolver el puzzle automáticamente (solver)
+    private void animateSolution(List<Node> solution) {
+        Runnable runnable = new Runnable() {
+            int stepIndex = 0;
+
+            @Override
+            public void run() {
+                if (stepIndex < solution.size()) {
+                    Node step = solution.get(stepIndex);
+                    List<String> currentState = step.state;
+                    movePuzzleAccordingToState(currentState);
+                    stepIndex++;
+                    updateMoveCount();  // Contar cada movimiento del solver
+                    handler.postDelayed(this, ANIMATION_DELAY);
+                } else {
+                    stopTimer();
+                    showCompletionDialog(true);  // Mostrar mensaje de finalización para el solver
+                }
+            }
+        };
+        handler.post(runnable);
+    }
+
+    // Mover las piezas del puzzle de acuerdo con el estado actual
+    private void movePuzzleAccordingToState(List<String> targetState) {
+        int emptyPosition = pieces.indexOf(null);
+        int targetEmptyPosition = targetState.indexOf("0");
+
+        // Verificar si las posiciones son adyacentes
+        if (isAdjacent(emptyPosition, targetEmptyPosition)) {
+            Collections.swap(pieces, emptyPosition, targetEmptyPosition);
             puzzleAdapter.notifyDataSetChanged();
-
-            // Verificar si el puzzle se ha resuelto
-            if (isSolved()) {
-                // Mostrar mensaje de victoria o resetear el juego
-                Toast.makeText(this, "¡Puzzle completado!", Toast.LENGTH_SHORT).show();
-            }
         }
     }
 
-    // Método para verificar si dos posiciones son adyacentes
+    // Verificar si dos posiciones son adyacentes
     private boolean isAdjacent(int emptyPosition, int position) {
-        // Diferencia de filas y columnas entre la posición seleccionada y la vacía
         int emptyRow = emptyPosition / 3;
         int emptyCol = emptyPosition % 3;
         int selectedRow = position / 3;
@@ -246,85 +430,17 @@ public class image_puzzle extends AppCompatActivity {
                 (Math.abs(emptyCol - selectedCol) == 1 && emptyRow == selectedRow);
     }
 
-    // Método para verificar si el puzzle es resoluble
-    private boolean isSolvable() {
-        List<Bitmap> puzzlePieces = new ArrayList<>(pieces);
-        puzzlePieces.remove(null); // Eliminar la pieza vacía para calcular las inversiones
-
-        int inversions = 0;
-        for (int i = 0; i < puzzlePieces.size(); i++) {
-            for (int j = i + 1; j < puzzlePieces.size(); j++) {
-                if (pieces.indexOf(puzzlePieces.get(i)) > pieces.indexOf(puzzlePieces.get(j))) {
-                    inversions++;
-                }
-            }
-        }
-        return inversions % 2 == 0;
-    }
-
-    // Método para verificar si el puzzle está resuelto
+    // Verificar si el puzzle está resuelto
     private boolean isSolved() {
         for (int i = 0; i < pieces.size() - 1; i++) {
-            if (pieces.get(i) == null || pieces.get(i + 1) == null) return false;
-            if (pieces.get(i).getGenerationId() > pieces.get(i + 1).getGenerationId()) return false;
+            if (pieces.get(i) == null || solvedPieces.get(i) == null) return false;
+
+            // Comparar los identificadores únicos de las piezas en lugar del objeto Bitmap
+            if (pieces.get(i).getDensity() != solvedPieces.get(i).getDensity()) {
+                return false;
+            }
         }
         return true;
     }
 
-    private void solvePuzzle() {
-        List<String> initialState = new ArrayList<>();
-        // Llenar el estado inicial a partir de la posición actual de las piezas en el puzzle
-        for (Bitmap piece : pieces) {
-            if (piece != null) {
-                // Convertir el Bitmap a una representación de String o un identificador único
-                initialState.add(String.valueOf(piece.hashCode()));  // Aquí necesitas una forma de representar el estado como un String
-            } else {
-                initialState.add("0");  // La pieza vacía se representa con "0"
-            }
-        }
-
-        List<Node> solution = solver.solvePuzzle(initialState);
-        if (solution != null) {
-            animateSolution(solution); // Animar la solución en lugar de aplicar los pasos directamente
-        } else {
-            Toast.makeText(this, "No se encontró una solución.", Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    private void animateSolution(List<Node> solution) {
-        Runnable runnable = new Runnable() {
-            int stepIndex = 0;
-
-            @Override
-            public void run() {
-                if (stepIndex < solution.size() - 1) {
-                    Node step = solution.get(stepIndex);
-                    updatePuzzleWithState(step.state); // Actualizar el puzzle con el estado actual
-                    stepIndex++;
-                    handler.postDelayed(this, ANIMATION_DELAY); // Continuar con el siguiente paso después de un delay
-                } else {
-                    Toast.makeText(image_puzzle.this, "Puzzle resuelto automáticamente!", Toast.LENGTH_SHORT).show();
-                }
-            }
-        };
-        handler.post(runnable); // Iniciar la animación
-    }
-
-    // Método para actualizar el estado del puzzle a partir de una lista de Strings
-    private void updatePuzzleWithState(List<String> state) {
-        for (int i = 0; i < state.size(); i++) {
-            String value = state.get(i);
-            if (value.equals("0")) {
-                pieces.set(i, null); // La pieza vacía
-            } else {
-                for (Bitmap piece : pieces) {
-                    if (piece != null && String.valueOf(piece.hashCode()).equals(value)) {
-                        pieces.set(i, piece); // Colocar la pieza en la posición correcta
-                        break;
-                    }
-                }
-            }
-        }
-        puzzleAdapter.notifyDataSetChanged(); // Actualizar el adaptador para reflejar los cambios
-    }
 }

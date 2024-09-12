@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.SystemClock;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.AdapterView;
@@ -16,21 +17,20 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.rompecabezas.R;
+import com.example.rompecabezas.model.Node;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Set;
 
 public class NormalPlay extends AppCompatActivity {
-    private static final int PROFUNDIDAD_MAXIMA = 100;
-
+    private Node finalNode;
     private GridLayout tableroJugador, tableroMeta;
     private TextView cronometro;
+    private TextView moveCounter;
     private Button btnNuevo, btnSolver, btnSalir;
     private Spinner spinnerDificultad;
     private boolean isPlaying = false;
@@ -41,6 +41,7 @@ public class NormalPlay extends AppCompatActivity {
     private int size;
     private Handler handler = new Handler();
     private long startTime;
+    private int moveCount = 0; // Variable para contar los movimientos
     private boolean isTimerRunning = false;
     private boolean isFirstMove = true;
 
@@ -51,7 +52,6 @@ public class NormalPlay extends AppCompatActivity {
                 long elapsedTime = SystemClock.elapsedRealtime() - startTime;
                 int seconds = (int) (elapsedTime / 1000) % 60;
                 int minutes = (int) (elapsedTime / 1000) / 60;
-
                 // Actualiza el TextView con el tiempo transcurrido
                 cronometro.setText(String.format("%02d:%02d", minutes, seconds));
 
@@ -73,6 +73,7 @@ public class NormalPlay extends AppCompatActivity {
         btnSolver = findViewById(R.id.btnSolverN);
         btnSalir = findViewById(R.id.btnSalir);
         spinnerDificultad = findViewById(R.id.spinnerDificultad);
+        moveCounter = findViewById(R.id.moveCounter);
 
         // Configurar el spinner para elegir la dificultad
         spinnerDificultad.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -91,7 +92,7 @@ public class NormalPlay extends AppCompatActivity {
         });
 
         btnNuevo.setOnClickListener(v -> nuevoJuego());
-        btnSolver.setOnClickListener(v -> solver());
+        btnSolver.setOnClickListener(v -> solvePuzzle());
         btnSalir.setOnClickListener(v -> salir());
 
         nuevoJuego();
@@ -99,6 +100,7 @@ public class NormalPlay extends AppCompatActivity {
 
     private void nuevoJuego() {
         resetCronometro(); // Reiniciar cronómetro
+        moveCount = 0; // Reiniciar el contador de movimientos
         isPlaying = false;
         isFirstMove = true;
 
@@ -107,17 +109,12 @@ public class NormalPlay extends AppCompatActivity {
         // Generar puzzles
         generarPuzzle();
         rellenarTableros();
-
-        tableroJugador.setOnClickListener(v -> {
-            if (isFirstMove) {
-                startCronometro(); // Iniciar cronómetro cuando el jugador haga el primer movimiento
-                isFirstMove = false;
-            }
-        });
     }
+
 
     private void startCronometro() {
         startTime = SystemClock.elapsedRealtime();
+        Log.d("timer", String.valueOf(startTime));
         isTimerRunning = true;
         handler.post(timerRunnable);  // Inicia el runnable que actualiza el cronómetro
     }
@@ -218,6 +215,10 @@ public class NormalPlay extends AppCompatActivity {
     }
 
     private void moverPieza(int row, int col) {
+        if (isFirstMove) {
+            startCronometro(); // Iniciar cronómetro cuando el jugador haga el primer movimiento
+            isFirstMove = false;
+        }
         if ((Math.abs(emptyTileRow - row) == 1 && emptyTileCol == col) ||
                 (Math.abs(emptyTileCol - col) == 1 && emptyTileRow == row)) {
             // Intercambiar piezas
@@ -226,6 +227,9 @@ public class NormalPlay extends AppCompatActivity {
 
             emptyTileRow = row;
             emptyTileCol = col;
+
+            moveCount++; // Incrementar el contador de movimientos
+            moveCounter.setText("Movimientos: " + moveCount); // Actualizar el contador en la pantalla
 
             rellenarTableros();
             verificarVictoria();
@@ -237,6 +241,36 @@ public class NormalPlay extends AppCompatActivity {
             stopCronometro(); // Detener el cronómetro
             mostrarDialogoVictoria();
         }
+    }
+
+    private List<String> getTextFromTiles() {
+        List<String> tiles = new ArrayList<>();
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                int value = puzzleJugador[i][j];
+                if (value == 0) {
+                    tiles.add("X");  // Representar la pieza vacía como "X"
+                } else {
+                    tiles.add(String.valueOf((char) ('A' + value - 1)));
+                }
+            }
+        }
+        return tiles;
+    }
+
+    private List<String> getTextFromGoal() {
+        List<String> tiles = new ArrayList<>();
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                int value = puzzleMeta[i][j];
+                if (value == 0) {
+                    tiles.add("X");  // Representar la pieza vacía como "X"
+                } else {
+                    tiles.add(String.valueOf((char) ('A' + value - 1)));
+                }
+            }
+        }
+        return tiles;
     }
 
     private void stopCronometro() {
@@ -263,110 +297,358 @@ public class NormalPlay extends AppCompatActivity {
         String tiempo = String.format("%02d:%02d", minutes, seconds);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setMessage("¡Felicidades! Resolviste el puzzle en " + tiempo + " minutos.")
-                .setPositiveButton("OK", (dialog, which) -> nuevoJuego());
+        builder.setMessage("Has completado el rompecabezas en " + minutes + " minutos y " + seconds + " con " + moveCount + " movimientos.")
+                .setPositiveButton("OK", (dialog, which) -> resetGame());
         builder.create().show();
     }
 
-    private void solver() {
-        try {
-            PriorityQueue<EstadoPuzzle> openList = new PriorityQueue<>();
-            HashMap<String, Integer> closedSet = new HashMap<>();
+    private void solvePuzzle() {
+        // Mover la lógica de resolución a un hilo separado
+        new Thread(() -> {
+            runOnUiThread(() -> {
+                // Iniciar cronómetro
+                startCronometro();
+            });
 
-            EstadoPuzzle estadoInicial = new EstadoPuzzle(puzzleJugador, emptyTileRow, emptyTileCol, 0, null);
-            openList.add(estadoInicial);
-            closedSet.put(estadoInicial.serializar(), estadoInicial.g + estadoInicial.h);
+            List<String> initial = getTextFromTiles();  // Obtener el estado actual del jugador como lista lineal
+            List<String> goal = getTextFromGoal();      // Obtener el estado meta como lista lineal
 
-            // Limitar el número de nodos procesados para evitar usar demasiada memoria
-            int maxNodosProcesados = 100000;  // Por ejemplo, limitar a 100k nodos
-            int nodosProcesados = 0;
+            List<List<String>> solutionPath;
 
-            while (!openList.isEmpty()) {
-                if (nodosProcesados++ > maxNodosProcesados) {
-                    throw new Exception("Se alcanzó el límite de nodos procesados. Posible exceso de memoria.");
-                }
+            // Seleccionar el algoritmo según el tamaño del puzzle
+            if (size == 4) {
+                solutionPath = bidirectionalAStar(initial, goal);  // Usar A* Bidireccional para 4x4
+            } else {
+                solutionPath = aStar(initial, goal);    // Usar A* para tamaños más pequeños
+            }
 
-                EstadoPuzzle actual = openList.poll();
+            if (solutionPath != null && !solutionPath.isEmpty()) {
+                // Mostrar los pasos de la solución
+                for (int i = 1; i < solutionPath.size(); i++) {
+                    List<String> step = solutionPath.get(i);
+                    final int delay = i * 250;  // 250ms por cada movimiento
+                    runOnUiThread(() -> {
+                        setTilesFromList(step);  // Actualizar el tablero con los movimientos
+                        moveCount++;
+                        moveCounter.setText("Movimientos: " + moveCount);  // Actualizar el contador de movimientos
+                    });
 
-                // Verificar si hemos alcanzado el estado meta
-                if (actual.esMeta(puzzleMeta)) {
-                    mostrarSolucion(actual);
-                    return;
-                }
-
-                // Generar sucesores
-                for (EstadoPuzzle sucesor : actual.generarSucesores()) {
-                    String estadoSerializado = sucesor.serializar();
-                    int nuevoCosto = sucesor.g + sucesor.h;
-
-                    // Solo agregar el sucesor si no lo hemos visto antes o si tiene un costo mejor
-                    if (!closedSet.containsKey(estadoSerializado) || closedSet.get(estadoSerializado) > nuevoCosto) {
-                        openList.add(sucesor);
-                        closedSet.put(estadoSerializado, nuevoCosto);
+                    try {
+                        Thread.sleep(250);  // Simular el retraso entre los movimientos
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
                     }
                 }
-            }
-            Toast.makeText(this, "No se encontró solución", Toast.LENGTH_SHORT).show();
-        } catch (OutOfMemoryError e) {
-            Toast.makeText(this, "Error: Memoria insuficiente para resolver el puzzle", Toast.LENGTH_LONG).show();
-        } catch (Exception e) {
-            Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
-        }
-    }
 
-    // Mostrar la solución paso a paso
-    private void mostrarSolucion(EstadoPuzzle estadoFinal) {
-        List<EstadoPuzzle> pasos = new ArrayList<>();
-        while (estadoFinal != null) {
-            pasos.add(estadoFinal);
-            estadoFinal = estadoFinal.padre;
-        }
-        Collections.reverse(pasos);
-
-        // Mostrar los pasos con un pequeño retraso
-        new Thread(() -> {
-            for (EstadoPuzzle paso : pasos) {
-                runOnUiThread(() -> actualizarTablero(paso.estado)); // Actualizar el tablero en la interfaz
-                try {
-                    Thread.sleep(500);  // Pausa de 0.5 segundos entre cada paso
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+                long elapsedTime = SystemClock.elapsedRealtime() - startTime;
+                runOnUiThread(() -> showSolverResult(elapsedTime, moveCount));
+            } else {
+                runOnUiThread(() -> Toast.makeText(this, "No se encontró una solución. Verifique si el puzzle es solucionable.", Toast.LENGTH_SHORT).show());
             }
+
         }).start();
     }
 
-    // Actualiza el tablero de jugador en la UI con el estado actual del puzzle
-    private void actualizarTablero(int[][] estado) {
-        tableroJugador.removeAllViews();
-        for (int i = 0; i < size; i++) {
-            for (int j = 0; j < size; j++) {
-                TextView tvJugador = new TextView(this);
-                GridLayout.LayoutParams paramsJugador = new GridLayout.LayoutParams();
-                paramsJugador.width = getTileSize();
-                paramsJugador.height = getTileSize();
-                paramsJugador.setMargins(5, 5, 5, 5);
-                tvJugador.setLayoutParams(paramsJugador);
+    // Implementación de A* Bidireccional para 4x4
+    private List<List<String>> bidirectionalAStar(List<String> initial, List<String> goal) {
+        PriorityQueue<Node> forwardOpenSet = new PriorityQueue<>();
+        PriorityQueue<Node> backwardOpenSet = new PriorityQueue<>();
+        Set<List<String>> forwardClosedSet = new HashSet<>();
+        Set<List<String>> backwardClosedSet = new HashSet<>();
 
-                int valueJugador = estado[i][j];
-                if (valueJugador != 0) {
-                    tvJugador.setText(String.valueOf((char) ('A' + valueJugador - 1)));
-                    tvJugador.setBackgroundColor(getColorForTile(valueJugador));
-                    tvJugador.setTextSize(24);
-                    tvJugador.setGravity(Gravity.CENTER);
-                    tvJugador.setTextColor(getResources().getColor(R.color.white));
-                } else {
-                    tvJugador.setText("");
-                    tvJugador.setBackgroundColor(getResources().getColor(R.color.color_X));
-                    tvJugador.setTextSize(24);
-                    tvJugador.setGravity(Gravity.CENTER);
-                }
+        forwardOpenSet.add(new Node(initial, 0, heuristic(initial, goal), null));
+        backwardOpenSet.add(new Node(goal, 0, heuristic(goal, initial), null));  // Búsqueda desde el objetivo
 
-                tableroJugador.addView(tvJugador);
+        Node meetingNode = null;
+
+        while (!forwardOpenSet.isEmpty() && !backwardOpenSet.isEmpty()) {
+            // Expandir el nodo con menor costo de la búsqueda hacia adelante
+            Node forwardNode = forwardOpenSet.poll();
+            List<String> forwardState = forwardNode.state;
+
+            if (backwardClosedSet.contains(forwardState)) {
+                meetingNode = forwardNode;
+                break;
             }
+
+            forwardClosedSet.add(forwardState);
+            expandNeighbors(forwardOpenSet, forwardClosedSet, forwardNode, goal);
+
+            // Expandir el nodo con menor costo de la búsqueda hacia atrás
+            Node backwardNode = backwardOpenSet.poll();
+            List<String> backwardState = backwardNode.state;
+
+            if (forwardClosedSet.contains(backwardState)) {
+                meetingNode = backwardNode;
+                break;
+            }
+
+            backwardClosedSet.add(backwardState);
+            expandNeighbors(backwardOpenSet, backwardClosedSet, backwardNode, initial);
         }
+
+        if (meetingNode != null) {
+            // Reconstruir el camino combinando las dos búsquedas
+            return reconstructBidirectionalPath(meetingNode);
+        }
+
+        return null;  // No se encontró solución
     }
 
+    // Expande los nodos vecinos
+// Expande los nodos vecinos, priorizando aquellos que minimizan la heurística
+    private void expandNeighbors(PriorityQueue<Node> openSet, Set<List<String>> closedSet, Node currentNode, List<String> goal) {
+        int emptyIndex = currentNode.state.indexOf("X");
+        int[] directions = {-size, size, -1, 1};  // Movimientos posibles en las cuatro direcciones
+        List<Node> neighbors = new ArrayList<>();
+
+        for (int dir : directions) {
+            int newIndex = emptyIndex + dir;
+
+            if (newIndex >= 0 && newIndex < size * size && isValidMove(emptyIndex, newIndex, size)) {
+                List<String> neighbor = new ArrayList<>(currentNode.state);
+                Collections.swap(neighbor, emptyIndex, newIndex);
+
+                if (!closedSet.contains(neighbor)) {
+                    int tentativeGScore = currentNode.gScore + 1;
+                    int hScore = heuristic(neighbor, goal);  // Calcula la heurística para este vecino
+                    Node neighborNode = new Node(neighbor, tentativeGScore, tentativeGScore + hScore, currentNode);
+                    neighbors.add(neighborNode);
+                }
+            }
+        }
+
+        // Ordenar vecinos por la heurística para priorizar los mejores movimientos
+        neighbors.sort((a, b) -> Integer.compare(a.fScore, b.fScore));
+
+        // Añadir los mejores vecinos al openSet
+        openSet.addAll(neighbors);
+    }
+
+
+    // Reconstruye el camino combinado entre las búsquedas
+    private List<List<String>> reconstructBidirectionalPath(Node meetingNode) {
+        List<List<String>> forwardPath = reconstructPath(meetingNode);
+        List<List<String>> backwardPath = reconstructBackwardPath(meetingNode);
+
+        // Combinar los caminos
+        forwardPath.addAll(backwardPath);
+        return forwardPath;
+    }
+
+    // Reconstruye la ruta hacia atrás
+    private List<List<String>> reconstructBackwardPath(Node node) {
+        List<List<String>> path = new ArrayList<>();
+        node = node.parent;  // Evitar duplicar el estado del encuentro
+        while (node != null) {
+            path.add(node.state);
+            node = node.parent;
+        }
+        return path;
+    }
+
+    // Heurística combinada de distancia Manhattan + Linear Conflict para puzzles deslizantes
+    private int heuristic(List<String> state, List<String> goal) {
+        int manhattanDistance = 0;
+        int linearConflicts = 0;
+        int size = (int) Math.sqrt(state.size());
+
+        // Calcular la distancia Manhattan
+        for (int i = 0; i < state.size(); i++) {
+            String tile = state.get(i);
+            if (!tile.equals("X")) {
+                int goalIndex = goal.indexOf(tile);
+                int currentRow = i / size;
+                int currentCol = i % size;
+                int goalRow = goalIndex / size;
+                int goalCol = goalIndex % size;
+                manhattanDistance += Math.abs(currentRow - goalRow) + Math.abs(currentCol - goalCol);
+            }
+        }
+
+        // Calcular conflictos lineales en filas
+        for (int row = 0; row < size; row++) {
+            linearConflicts += calculateRowConflicts(state, goal, row, size);
+        }
+
+        // Calcular conflictos lineales en columnas
+        for (int col = 0; col < size; col++) {
+            linearConflicts += calculateColumnConflicts(state, goal, col, size);
+        }
+
+        return manhattanDistance + 2 * linearConflicts;  // Cada conflicto lineal añade un costo de 2 movimientos
+    }
+
+    // Función para calcular conflictos lineales en filas
+    private int calculateRowConflicts(List<String> state, List<String> goal, int row, int size) {
+        int conflicts = 0;
+
+        for (int i = 0; i < size; i++) {
+            String tile1 = state.get(row * size + i);
+            if (tile1.equals("X")) continue;  // Ignorar la pieza vacía
+
+            int goalIndex1 = goal.indexOf(tile1);
+            int goalRow1 = goalIndex1 / size;
+
+            // Si la ficha está en su fila objetivo
+            if (goalRow1 == row) {
+                for (int j = i + 1; j < size; j++) {
+                    String tile2 = state.get(row * size + j);
+                    if (tile2.equals("X")) continue;
+
+                    int goalIndex2 = goal.indexOf(tile2);
+                    int goalRow2 = goalIndex2 / size;
+
+                    // Ambas fichas están en la misma fila, pero en el orden incorrecto (conflicto lineal)
+                    if (goalRow2 == row && goalIndex1 > goalIndex2) {
+                        conflicts++;
+                    }
+                }
+            }
+        }
+
+        return conflicts;
+    }
+
+    // Función para calcular conflictos lineales en columnas
+    private int calculateColumnConflicts(List<String> state, List<String> goal, int col, int size) {
+        int conflicts = 0;
+
+        for (int i = 0; i < size; i++) {
+            String tile1 = state.get(i * size + col);
+            if (tile1.equals("X")) continue;  // Ignorar la pieza vacía
+
+            int goalIndex1 = goal.indexOf(tile1);
+            int goalCol1 = goalIndex1 % size;
+
+            // Si la ficha está en su columna objetivo
+            if (goalCol1 == col) {
+                for (int j = i + 1; j < size; j++) {
+                    String tile2 = state.get(j * size + col);
+                    if (tile2.equals("X")) continue;
+
+                    int goalIndex2 = goal.indexOf(tile2);
+                    int goalCol2 = goalIndex2 % size;
+
+                    // Ambas fichas están en la misma columna, pero en el orden incorrecto (conflicto lineal)
+                    if (goalCol2 == col && goalIndex1 > goalIndex2) {
+                        conflicts++;
+                    }
+                }
+            }
+        }
+
+        return conflicts;
+    }
+
+    private void showSolverResult(long elapsedTime, int movesCount) {
+        int seconds = (int) (elapsedTime / 1000) % 60;
+        int minutes = (int) (elapsedTime / 1000) / 60;
+
+        new AlertDialog.Builder(this)
+                .setTitle("Solver Completado")
+                .setMessage("El solver ha resuelto el rompecabezas en " + minutes + " minutos y " + seconds + " segundos, con " + movesCount + " movimientos.")
+                .setPositiveButton("OK", null)
+                .show();
+
+        resetGame();
+
+    }
+
+    private void resetGame() {
+        // Reiniciar el cronómetro
+        resetCronometro();
+
+        // Reiniciar el contador de movimientos
+        moveCount = 0;
+        moveCounter.setText("Movimientos: " + moveCount);
+
+        // Generar nuevo puzzle y tablero de meta
+        puzzleMeta = generarPuzzleSolucionable(size);
+        do {
+            puzzleJugador = mezclarPuzzle(puzzleMeta);
+        } while (esIgual(puzzleMeta, puzzleJugador)); // Asegurar que los puzzles no sean iguales
+
+        // Rellenar los tableros con las nuevas piezas
+        rellenarTableros();
+
+        // Reiniciar la bandera para la primera jugada
+        isFirstMove = true;
+    }
+
+
+    private void setTilesFromList(List<String> tiles) {
+        int index = 0;
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                String tile = tiles.get(index++);
+                if (tile.equals("X")) {
+                    puzzleJugador[i][j] = 0;  // La pieza vacía
+                } else {
+                    puzzleJugador[i][j] = tile.charAt(0) - 'A' + 1;
+                }
+            }
+        }
+        rellenarTableros();  // Actualizar la visualización del tablero
+    }
+
+    // Método para reconstruir la ruta desde el nodo final
+    private List<List<String>> reconstructPath(Node node) {
+        List<List<String>> path = new ArrayList<>();
+        while (node != null) {
+            path.add(0, node.state);
+            node = node.parent;
+        }
+        return path;
+    }
+
+    private List<List<String>> aStar(List<String> initial, List<String> goal) {
+        PriorityQueue<Node> openSet = new PriorityQueue<>();
+        Set<List<String>> closedSet = new HashSet<>();
+        openSet.add(new Node(initial, 0, heuristic(initial, goal), null));
+
+        int gridSize = size * size;  // Tamaño total del tablero (por ejemplo, 3x3 o 4x4)
+
+        while (!openSet.isEmpty()) {
+            Node currentNode = openSet.poll();
+            List<String> current = currentNode.state;
+
+            if (current.equals(goal)) {
+                return reconstructPath(currentNode);
+            }
+
+            closedSet.add(current);
+            int emptyIndex = current.indexOf("X");
+            int[] directions = {-size, size, -1, 1};  // Ajustar las direcciones según el tamaño del tablero
+
+            for (int dir : directions) {
+                int newIndex = emptyIndex + dir;
+
+                if (newIndex >= 0 && newIndex < gridSize && isValidMove(emptyIndex, newIndex, size)) {
+                    List<String> neighbor = new ArrayList<>(current);
+                    Collections.swap(neighbor, emptyIndex, newIndex);
+
+                    if (!closedSet.contains(neighbor)) {
+                        int tentativeGScore = currentNode.gScore + 1;
+                        Node neighborNode = new Node(neighbor, tentativeGScore, tentativeGScore + heuristic(neighbor, goal), currentNode);
+                        openSet.add(neighborNode);
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+
+
+    private boolean isValidMove(int emptyIndex, int newIndex, int size) {
+        int emptyRow = emptyIndex / size;
+        int emptyCol = emptyIndex % size;
+        int newRow = newIndex / size;
+        int newCol = newIndex % size;
+
+        return (Math.abs(emptyRow - newRow) + Math.abs(emptyCol - newCol)) == 1;
+    }
 
     private void salir() {
         finish();
@@ -407,7 +689,7 @@ public class NormalPlay extends AppCompatActivity {
     private boolean esSolucionable(List<Integer> puzzleList, int size) {
         int countInversions = 0;
 
-        // Contar el número de inversiones
+        // Contar el número de inversiones (pares de fichas en el orden incorrecto)
         for (int i = 0; i < puzzleList.size(); i++) {
             for (int j = i + 1; j < puzzleList.size(); j++) {
                 if (puzzleList.get(i) != 0 && puzzleList.get(j) != 0 && puzzleList.get(i) > puzzleList.get(j)) {
@@ -417,12 +699,12 @@ public class NormalPlay extends AppCompatActivity {
         }
 
         if (size % 2 == 1) {
-            // Para grids de tamaño impar (como 3x3), el número de inversiones debe ser par
+            // Para puzzles de tamaño impar (como 3x3), el número de inversiones debe ser par para ser solucionable
             return countInversions % 2 == 0;
         } else {
-            // Para grids de tamaño par (como 4x4)
+            // Para puzzles de tamaño par (como 4x4)
             int emptyRowFromBottom = size - (puzzleList.indexOf(0) / size);  // Contar la fila desde abajo
-            // Verificar si la fila vacía es impar y el número de inversiones es par o viceversa
+            // Verificar si la fila vacía es impar y el número de inversiones es par, o viceversa
             if (emptyRowFromBottom % 2 == 1) {
                 return countInversions % 2 == 0;
             } else {
@@ -473,86 +755,4 @@ public class NormalPlay extends AppCompatActivity {
         return nuevoPuzzle;
     }
 
-}
-
-class EstadoPuzzle implements Comparable<EstadoPuzzle> {
-    int[][] estado;
-    int filaVacia, colVacia;
-    int g, h;  // g: costo desde el inicio, h: heurística (distancia Manhattan + piezas fuera de lugar)
-    EstadoPuzzle padre;
-
-    public EstadoPuzzle(int[][] estado, int filaVacia, int colVacia, int g, EstadoPuzzle padre) {
-        this.estado = new int[estado.length][estado.length];
-        for (int i = 0; i < estado.length; i++) {
-            this.estado[i] = Arrays.copyOf(estado[i], estado[i].length);
-        }
-        this.filaVacia = filaVacia;
-        this.colVacia = colVacia;
-        this.g = g;
-        this.h = calcularHeuristica();
-        this.padre = padre;
-    }
-
-    // Combina distancia Manhattan y el número de piezas fuera de lugar
-    private int calcularHeuristica() {
-        int manhattan = 0;
-        int misplacedTiles = 0;
-        int n = estado.length;
-
-        for (int i = 0; i < n; i++) {
-            for (int j = 0; j < n; j++) {
-                int valor = estado[i][j];
-                if (valor != 0) {
-                    int filaObjetivo = (valor - 1) / n;
-                    int colObjetivo = (valor - 1) % n;
-                    manhattan += Math.abs(i - filaObjetivo) + Math.abs(j - colObjetivo);
-
-                    // Piezas fuera de lugar
-                    if (i != filaObjetivo || j != colObjetivo) {
-                        misplacedTiles++;
-                    }
-                }
-            }
-        }
-        return manhattan + misplacedTiles;  // Combina ambas heurísticas
-    }
-
-    @Override
-    public int compareTo(EstadoPuzzle otro) {
-        return Integer.compare(this.g + this.h, otro.g + otro.h);  // f = g + h
-    }
-
-    public List<EstadoPuzzle> generarSucesores() {
-        List<EstadoPuzzle> sucesores = new ArrayList<>();
-        int n = estado.length;
-        int[][] direcciones = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
-        for (int[] d : direcciones) {
-            int nuevaFila = filaVacia + d[0];
-            int nuevaCol = colVacia + d[1];
-            if (nuevaFila >= 0 && nuevaFila < n && nuevaCol >= 0 && nuevaCol < n) {
-                int[][] nuevoEstado = new int[n][n];
-                for (int i = 0; i < n; i++) {
-                    nuevoEstado[i] = Arrays.copyOf(estado[i], n);
-                }
-                nuevoEstado[filaVacia][colVacia] = nuevoEstado[nuevaFila][nuevaCol];
-                nuevoEstado[nuevaFila][nuevaCol] = 0;
-                sucesores.add(new EstadoPuzzle(nuevoEstado, nuevaFila, nuevaCol, this.g + 1, this));
-            }
-        }
-        return sucesores;
-    }
-
-    public boolean esMeta(int[][] objetivo) {
-        return Arrays.deepEquals(this.estado, objetivo);
-    }
-
-    public String serializar() {
-        StringBuilder sb = new StringBuilder();
-        for (int[] fila : estado) {
-            for (int val : fila) {
-                sb.append(val).append(",");
-            }
-        }
-        return sb.toString();
-    }
 }
