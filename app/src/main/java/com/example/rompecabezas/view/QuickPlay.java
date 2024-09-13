@@ -16,10 +16,13 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.rompecabezas.R;
+import com.example.rompecabezas.controller.JuegoController;
+import com.example.rompecabezas.model.JuegoModel;
 import com.example.rompecabezas.model.Node;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -39,8 +42,10 @@ public class QuickPlay extends AppCompatActivity {
     Handler handler = new Handler();
     private long startTime;  // Para registrar el inicio del cronómetro
     private boolean isTimerRunning = false;
-
+     // Aquí almacenamos el ID del usuario
     private boolean isFirstMove=true;
+    private int userId;
+    private JuegoController juegoController;
 
     private final Runnable timerRunnable = new Runnable() {
         @Override
@@ -69,6 +74,9 @@ public class QuickPlay extends AppCompatActivity {
         btSalir = findViewById(R.id.btsalir);
         timerText = findViewById(R.id.timerText);
         moveCounter = findViewById(R.id.moveCounter);
+
+        // Inicialización del controlador de juegos
+        juegoController = new JuegoController(this);
 
         puzzleTiles = new TextView[]{
                 findViewById(R.id.tvA), findViewById(R.id.tvB), findViewById(R.id.tvC),
@@ -140,8 +148,21 @@ public class QuickPlay extends AppCompatActivity {
                 finish();
             }
         });
+
+        // Obtener el ID del usuario desde SharedPreferences
+        obtenerIdUsuario();
     }
 
+    // Método para obtener el ID del usuario
+    private void obtenerIdUsuario() {
+        SharedPreferences sharedPref = getSharedPreferences("user_session", Context.MODE_PRIVATE);
+        userId = sharedPref.getInt("user_id", -1);  // Obtener el ID del usuario
+        Toast.makeText(this, "ID del usuario: " + userId, Toast.LENGTH_SHORT).show();
+        if (userId == -1) {
+            Toast.makeText(this, "Error al obtener el ID del usuario", Toast.LENGTH_SHORT).show();
+            finish();  // Terminar la actividad si no se encuentra el ID del usuario
+        }
+    }
 
     // Inicia el cronómetro
     private void startTimer() {
@@ -314,11 +335,12 @@ public class QuickPlay extends AppCompatActivity {
         int seconds = (int) (elapsedTime / 1000) % 60;
         int minutes = (int) (elapsedTime / 1000) / 60;
 
-        addPointsToCurrentUser(500);
+        // Registrar el juego cuando el usuario gana
+        registrarJuego(true, elapsedTime, movesCount, false);
 
         new AlertDialog.Builder(this)
                 .setTitle("¡Ganaste!")
-                .setMessage("Has completado el rompecabezas en " + minutes + " minutos y " + seconds + " segundos. Obtuviste 500 puntos.")
+                .setMessage("Has completado el rompecabezas en " + minutes + " minutos y " + seconds + " segundos. Obtuviste 500 puntos de experiencia.")
                 .setPositiveButton("OK", null)
                 .show();
         resetGame();
@@ -398,10 +420,46 @@ public class QuickPlay extends AppCompatActivity {
         }
     }
 
+    // Método para registrar un nuevo juego
+    private void registrarJuego(boolean isUserWin, long elapsedTime, int movimientos, boolean isSolverUsed) {
+        // Datos del juego
+        String dificultad = "media";
+        String tipoJuego = "juego rápido";
+        String resultado = isUserWin ? "gano" : "perdio";
+        int experienciaGanada = isUserWin ? 500 : 0;
+        int experienciaPerdida = isUserWin ? 0 : 500;
+        Date fechaJuego = new Date();  // Fecha actual
+
+        // Crear un nuevo modelo de juego
+        JuegoModel juego = new JuegoModel();
+        juego.setDificultad(dificultad);
+        juego.setTipoJuego(tipoJuego);
+        juego.setCantidadMovimientos(movimientos);
+        juego.setResultado(isUserWin);
+        juego.setExperienciaGanada(experienciaGanada);
+        juego.setExperienciaPerdida(experienciaPerdida);
+        juego.setTiempo((int) (elapsedTime / 1000));  // Convertir milisegundos a segundos
+        juego.setFechaJuego(fechaJuego);
+        juego.setSolverUsed(isSolverUsed);
+        juego.setUsuarioId(userId);
+        try{
+            // Insertar el juego en la base de datos
+            juegoController.crearJuego(juego);
+            Toast.makeText(this, "Registro del juego exitoso", Toast.LENGTH_SHORT).show();
+            Log.d("Registro juego", String.valueOf(juego));
+        }catch (IllegalArgumentException e){
+            Toast.makeText(this, "Error al registrar juego", Toast.LENGTH_SHORT).show();
+        }
+
+    }
+
 
     private void showSolverResult(long elapsedTime, int movesCount) {
         int seconds = (int) (elapsedTime / 1000) % 60;
         int minutes = (int) (elapsedTime / 1000) / 60;
+
+        // Registrar el juego cuando el usuario gana
+        registrarJuego(false, elapsedTime, movesCount, true);
 
         new AlertDialog.Builder(this)
                 .setTitle("Solver Completado")

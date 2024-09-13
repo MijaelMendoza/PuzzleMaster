@@ -1,8 +1,12 @@
 package com.example.rompecabezas.view;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.SystemClock;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Spinner;
@@ -10,13 +14,17 @@ import android.widget.TextView;
 import android.app.AlertDialog;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.rompecabezas.R;
+import com.example.rompecabezas.controller.JuegoController;
+import com.example.rompecabezas.model.JuegoModel;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -35,6 +43,16 @@ public class Versus extends AppCompatActivity {
     Handler handler = new Handler();
     int[] delayTimes = {1500, 800, 300};  // Dificultades: fácil, media, difícil
     int selectedDelay = 1000;  // Por defecto fácil
+    private boolean isTimerRunning = false;
+    private boolean isFirstMove = true;  // Para controlar el inicio del juego
+    private int playerMoveCount = 0;  // Contador de movimientos del jugador
+    private int solverMoveCount = 0;
+    private long startTime;  // Para controlar el inicio del cronómetro
+    private TextView moveCounter;  // Texto para mostrar los movimientos
+    private TextView timerText;  // Texto para mostrar el cronómetro
+
+    private int userId;
+    private JuegoController juegoController;
 
     // Mapa de colores para las letras
     HashMap<String, Integer> colorMap = new HashMap<>();
@@ -46,9 +64,11 @@ public class Versus extends AppCompatActivity {
 
         // Inicializar las vistas
         spinnerDificultad = findViewById(R.id.spinner_dificultad);
-        btStart = findViewById(R.id.bt_start);
         btSalir = findViewById(R.id.btsalir);
         btNuevo = findViewById(R.id.btnuevo);
+        moveCounter = findViewById(R.id.moveCounter);  // TextView para el contador de movimientos
+        timerText = findViewById(R.id.timerText);  // TextView para el cronómetro
+
 
         puzzleTiles = new TextView[]{
                 findViewById(R.id.tvA), findViewById(R.id.tvB), findViewById(R.id.tvC),
@@ -89,14 +109,6 @@ public class Versus extends AppCompatActivity {
             }
         });
 
-        // Inicializar los eventos de los botones
-        btStart.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startSolver();
-            }
-        });
-
         btSalir.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -123,7 +135,88 @@ public class Versus extends AppCompatActivity {
                 }
             });
         }
+        juegoController = new JuegoController(this);
+        obtenerIdUsuario();
     }
+
+    // Método para obtener el ID del usuario
+    private void obtenerIdUsuario() {
+        SharedPreferences sharedPref = getSharedPreferences("user_session", Context.MODE_PRIVATE);
+        userId = sharedPref.getInt("user_id", -1);  // Obtener el ID del usuario
+        Toast.makeText(this, "ID del usuario: " + userId, Toast.LENGTH_SHORT).show();
+        if (userId == -1) {
+            Toast.makeText(this, "Error al obtener el ID del usuario", Toast.LENGTH_SHORT).show();
+            finish();  // Terminar la actividad si no se encuentra el ID del usuario
+        }
+    }
+
+    // Método para registrar un nuevo juego
+    private void registrarJuego(boolean isUserWin, long elapsedTime, int movimientos, boolean isSolverUsed) {
+        // Datos del juego
+        String dificultad = spinnerDificultad.getSelectedItem().toString();
+        String tipoJuego = "versus";
+        String resultado = isUserWin ? "gano" : "perdio";
+        int experienciaGanada = isUserWin ? 500 : 0;
+        int experienciaPerdida = isUserWin ? 0 : 500;
+        Date fechaJuego = new Date();  // Fecha actual
+
+        // Crear un nuevo modelo de juego
+        JuegoModel juego = new JuegoModel();
+        juego.setDificultad(dificultad);
+        juego.setTipoJuego(tipoJuego);
+        juego.setCantidadMovimientos(movimientos);
+        juego.setResultado(isUserWin);
+        juego.setExperienciaGanada(experienciaGanada);
+        juego.setExperienciaPerdida(experienciaPerdida);
+        juego.setTiempo((int) (elapsedTime / 1000));  // Convertir milisegundos a segundos
+        juego.setFechaJuego(fechaJuego);
+        juego.setSolverUsed(isSolverUsed);
+        juego.setUsuarioId(userId);
+        try{
+            // Insertar el juego en la base de datos
+            juegoController.crearJuego(juego);
+            Toast.makeText(this, "Registro del juego exitoso", Toast.LENGTH_SHORT).show();
+            Log.d("Registro juego", String.valueOf(juego));
+        }catch (IllegalArgumentException e){
+            Toast.makeText(this, "Error al registrar juego", Toast.LENGTH_SHORT).show();
+        }
+
+    }
+
+    private void updateMoveCounter() {
+        moveCounter.setText("Movimientos: " + playerMoveCount);
+    }
+
+    private void startTimer() {
+        startTime = SystemClock.elapsedRealtime();
+        isTimerRunning = true;
+        handler.post(timerRunnable);
+    }
+
+    private void stopTimer() {
+        isTimerRunning = false;
+        handler.removeCallbacks(timerRunnable);  // Detener el Runnable del cronómetro
+    }
+
+    private void resetTimer() {
+        handler.removeCallbacks(timerRunnable);  // Detener cualquier actualización previa
+        isTimerRunning = false;
+        timerText.setText("00:00");
+    }
+
+    // Runnable para actualizar el cronómetro cada segundo
+    private final Runnable timerRunnable = new Runnable() {
+        @Override
+        public void run() {
+            if (isTimerRunning) {
+                long elapsedTime = SystemClock.elapsedRealtime() - startTime;
+                int seconds = (int) (elapsedTime / 1000) % 60;
+                int minutes = (int) (elapsedTime / 1000) / 60;
+                timerText.setText(String.format("%02d:%02d", minutes, seconds));
+                handler.postDelayed(this, 1000);  // Actualizar cada segundo
+            }
+        }
+    };
 
     private void initializeColorMap() {
         // Definir colores específicos para cada letra
@@ -148,9 +241,17 @@ public class Versus extends AppCompatActivity {
         setTiles(puzzleTiles, randomTilesForPuzzleSolver);
         setTiles(solverTiles, randomTilesForPuzzleSolver);
 
+        // Reiniciar el contador de movimientos y cronómetro
+        playerMoveCount = 0;
+        solverMoveCount = 0;
+        updateMoveCounter();
+        resetTimer();
+
         // Encontrar y configurar la posición del pivote (pieza vacía) para el jugador y el solver
         playerPivot = findPivot(puzzleTiles);
         solverPivot = findPivot(solverTiles);
+
+        isFirstMove = true;  // Esperar el primer movimiento
     }
 
     private void startSolver() {
@@ -215,6 +316,12 @@ public class Versus extends AppCompatActivity {
     }
 
     private void movePlayerTile(int index) {
+        if (isFirstMove) {
+            startTimer();
+            solvePuzzle();
+            isFirstMove = false;
+        }
+
         // Verificar si la ficha seleccionada es adyacente a la ficha vacía
         if (isValidMove(playerPivot, index)) {
             // Intercambiar las fichas
@@ -222,8 +329,13 @@ public class Versus extends AppCompatActivity {
             // Actualizar la posición del pivote del jugador
             playerPivot = index;
 
+            // Incrementar el contador de movimientos del jugador
+            playerMoveCount++;
+            updateMoveCounter();
+
             // Comprobar si el jugador ha ganado
             if (isPlayerWin()) {
+                stopTimer();
                 showWinMessage();
             }
         }
@@ -262,25 +374,44 @@ public class Versus extends AppCompatActivity {
         return true;
     }
 
+    // Mostrar mensaje de victoria
     private void showWinMessage() {
+        long elapsedTime = SystemClock.elapsedRealtime() - startTime;
+        int seconds = (int) (elapsedTime / 1000) % 60;
+        int minutes = (int) (elapsedTime / 1000) / 60;
+
+        registrarJuego(true, elapsedTime, playerMoveCount, false);
+
         runOnUiThread(() -> new AlertDialog.Builder(this)
                 .setTitle("¡Ganaste!")
-                .setMessage("Has completado el rompecabezas antes que el bot.")
+                .setMessage("Has completado el rompecabezas en " + minutes + " minutos y " + seconds + " segundos, con " + playerMoveCount + " movimientos.")
                 .setPositiveButton("OK", null)
                 .show());
-        resetGame();
+
+        resetGame(); // Reiniciar el juego
     }
 
+    // Mostrar mensaje de derrota
     private void showLoseMessage() {
+        long elapsedTime = SystemClock.elapsedRealtime() - startTime;
+        int seconds = (int) (elapsedTime / 1000) % 60;
+        int minutes = (int) (elapsedTime / 1000) / 60;
+
+        registrarJuego(false, elapsedTime, solverMoveCount, true);
+
         runOnUiThread(() -> new AlertDialog.Builder(this)
                 .setTitle("¡Perdiste!")
-                .setMessage("La IA ha completado el rompecabezas antes que tú. Perdiste 500 puntos")
+                .setMessage("La IA ha completado el rompecabezas antes que tú en " + minutes + " minutos y " + seconds + " segundos, con " + solverMoveCount + " movimientos. Perdiste 500 puntos.")
                 .setPositiveButton("OK", null)
                 .show());
-        resetGame();
+
+        resetGame(); // Reiniciar el juego
     }
 
+
     private void solvePuzzle() {
+        btNuevo.setEnabled(false);
+        spinnerDificultad.setEnabled(false);
         List<String> initial = new ArrayList<>();
         for (TextView tile : solverTiles) {
             initial.add(tile.getText().toString());
@@ -300,8 +431,11 @@ public class Versus extends AppCompatActivity {
                 handler.postDelayed(() -> {
                     setTiles(solverTiles, step);
                     solverPivot = findPivot(solverTiles);
+                    solverMoveCount++;
                     if (isSolverWin()) {
-                        showLoseMessage();  // Muestra mensaje de derrota si el solver gana
+                        showLoseMessage();// Muestra mensaje de derrota si el solver gana
+                        btNuevo.setEnabled(true);
+                        spinnerDificultad.setEnabled(true);
                     }
                 }, delay);
             }

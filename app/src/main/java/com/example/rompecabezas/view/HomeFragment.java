@@ -11,6 +11,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.example.rompecabezas.MainActivity;
 import com.example.rompecabezas.R;
 
 public class HomeFragment extends Fragment {

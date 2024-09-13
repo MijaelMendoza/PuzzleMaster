@@ -1,6 +1,8 @@
 package com.example.rompecabezas.view;
 
 import android.app.AlertDialog;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.SystemClock;
@@ -17,10 +19,13 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.rompecabezas.R;
+import com.example.rompecabezas.controller.JuegoController;
+import com.example.rompecabezas.model.JuegoModel;
 import com.example.rompecabezas.model.Node;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.PriorityQueue;
@@ -44,6 +49,8 @@ public class NormalPlay extends AppCompatActivity {
     private int moveCount = 0; // Variable para contar los movimientos
     private boolean isTimerRunning = false;
     private boolean isFirstMove = true;
+    private int userId;
+    private JuegoController juegoController;
 
     private final Runnable timerRunnable = new Runnable() {
         @Override
@@ -75,6 +82,9 @@ public class NormalPlay extends AppCompatActivity {
         spinnerDificultad = findViewById(R.id.spinnerDificultad);
         moveCounter = findViewById(R.id.moveCounter);
 
+        // Inicialización del controlador de juegos
+        juegoController = new JuegoController(this);
+
         // Configurar el spinner para elegir la dificultad
         spinnerDificultad.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -96,6 +106,64 @@ public class NormalPlay extends AppCompatActivity {
         btnSalir.setOnClickListener(v -> salir());
 
         nuevoJuego();
+        obtenerIdUsuario();
+    }
+
+    // Método para obtener el ID del usuario
+    private void obtenerIdUsuario() {
+        SharedPreferences sharedPref = getSharedPreferences("user_session", Context.MODE_PRIVATE);
+        userId = sharedPref.getInt("user_id", -1);  // Obtener el ID del usuario
+        Toast.makeText(this, "ID del usuario: " + userId, Toast.LENGTH_SHORT).show();
+        if (userId == -1) {
+            Toast.makeText(this, "Error al obtener el ID del usuario", Toast.LENGTH_SHORT).show();
+            finish();  // Terminar la actividad si no se encuentra el ID del usuario
+        }
+    }
+
+    // Método para registrar un nuevo juego
+    private void registrarJuego(boolean isUserWin, long elapsedTime, int movimientos, boolean isSolverUsed) {
+        // Datos del juego
+        String dificultad;
+        switch (size) {
+            case 2:
+                dificultad = "facil";
+                break;
+            case 3:
+                dificultad = "media";
+                break;
+            case 4:
+                dificultad = "dificil";
+                break;
+            default:
+                dificultad = "desconocido";
+        }
+        String tipoJuego = "juego normal";
+        String resultado = isUserWin ? "gano" : "perdio";
+        int experienciaGanada = isUserWin ? 500 : 0;
+        int experienciaPerdida = isUserWin ? 0 : 500;
+        Date fechaJuego = new Date();  // Fecha actual
+
+        // Crear un nuevo modelo de juego
+        JuegoModel juego = new JuegoModel();
+        juego.setDificultad(dificultad);
+        juego.setTipoJuego(tipoJuego);
+        juego.setCantidadMovimientos(movimientos);
+        juego.setResultado(isUserWin);
+        juego.setExperienciaGanada(experienciaGanada);
+        juego.setExperienciaPerdida(experienciaPerdida);
+        juego.setTiempo((int) (elapsedTime / 1000));  // Convertir milisegundos a segundos
+        juego.setFechaJuego(fechaJuego);
+        juego.setSolverUsed(isSolverUsed);
+        juego.setUsuarioId(userId);
+        try{
+            // Insertar el juego en la base de datos
+            juegoController.crearJuego(juego);
+            Toast.makeText(this, "Registro del juego exitoso", Toast.LENGTH_SHORT).show();
+            Log.d("Registro juego", String.valueOf(juego));
+        }catch (IllegalArgumentException e){
+            Toast.makeText(this, "Error al registrar juego", Toast.LENGTH_SHORT).show();
+        }
+
     }
 
     private void nuevoJuego() {
@@ -294,7 +362,8 @@ public class NormalPlay extends AppCompatActivity {
         int seconds = (int) (elapsedTime / 1000) % 60;
         int minutes = (int) (elapsedTime / 1000) / 60;
 
-        String tiempo = String.format("%02d:%02d", minutes, seconds);
+        // Registrar el juego cuando el usuario gana
+        registrarJuego(true, elapsedTime, moveCount, false);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setMessage("Has completado el rompecabezas en " + minutes + " minutos y " + seconds + " con " + moveCount + " movimientos.")
@@ -303,6 +372,9 @@ public class NormalPlay extends AppCompatActivity {
     }
 
     private void solvePuzzle() {
+        btnSolver.setEnabled(false);
+        btnNuevo.setEnabled(false);
+        spinnerDificultad.setEnabled(false);
         // Mover la lógica de resolución a un hilo separado
         new Thread(() -> {
             runOnUiThread(() -> {
@@ -542,8 +614,13 @@ public class NormalPlay extends AppCompatActivity {
     }
 
     private void showSolverResult(long elapsedTime, int movesCount) {
+        btnNuevo.setEnabled(true);
+        spinnerDificultad.setEnabled(true);
+        btnSolver.setEnabled(true);
         int seconds = (int) (elapsedTime / 1000) % 60;
         int minutes = (int) (elapsedTime / 1000) / 60;
+
+        registrarJuego(false, elapsedTime, moveCount, true);
 
         new AlertDialog.Builder(this)
                 .setTitle("Solver Completado")

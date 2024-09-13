@@ -1,8 +1,10 @@
 // Clase principal de la vista del puzzle
 package com.example.rompecabezas.view;
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -25,14 +27,17 @@ import androidx.appcompat.app.AppCompatActivity;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Random;
 
 import android.Manifest;
 
+import com.example.rompecabezas.controller.JuegoController;
 import com.example.rompecabezas.controller.PuzzleAdapter;
 import com.example.rompecabezas.R;
 import com.example.rompecabezas.controller.SolverImage;
+import com.example.rompecabezas.model.JuegoModel;
 import com.example.rompecabezas.model.Node;
 
 public class image_puzzle extends AppCompatActivity {
@@ -54,6 +59,9 @@ public class image_puzzle extends AppCompatActivity {
     private long startTime = 0;
     private boolean isTimerRunning = false;
     private Runnable timerRunnable;
+
+    private int userId;
+    private JuegoController juegoController;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -111,6 +119,9 @@ public class image_puzzle extends AppCompatActivity {
         handler = new Handler();
         random = new Random();
         solver = new SolverImage(); // Inicializar solver
+        // Inicialización del controlador de juegos
+        juegoController = new JuegoController(this);
+        obtenerIdUsuario();
     }
 
     // Método para reiniciar el cronómetro y el contador de movimientos
@@ -181,9 +192,12 @@ public class image_puzzle extends AppCompatActivity {
         seconds = seconds % 60;
 
         if (isSolver) {
+            registrarJuego(false, elapsedTime, movesCount, true);
             message = String.format("El solver resolvió el puzzle en %02d:%02d y %d movimientos.", minutes, seconds, movesCount);
         } else {
             message = String.format("¡Felicidades! Resolviste el puzzle en %02d:%02d y %d movimientos.", minutes, seconds, movesCount);
+            // Registrar el juego cuando el usuario gana
+            registrarJuego(true, elapsedTime, movesCount, false);
         }
 
         new AlertDialog.Builder(this)
@@ -197,6 +211,50 @@ public class image_puzzle extends AppCompatActivity {
                 })
                 .setCancelable(false)
                 .show();
+    }
+
+    // Método para obtener el ID del usuario
+    private void obtenerIdUsuario() {
+        SharedPreferences sharedPref = getSharedPreferences("user_session", Context.MODE_PRIVATE);
+        userId = sharedPref.getInt("user_id", -1);  // Obtener el ID del usuario
+        Toast.makeText(this, "ID del usuario: " + userId, Toast.LENGTH_SHORT).show();
+        if (userId == -1) {
+            Toast.makeText(this, "Error al obtener el ID del usuario", Toast.LENGTH_SHORT).show();
+            finish();  // Terminar la actividad si no se encuentra el ID del usuario
+        }
+    }
+
+    // Método para registrar un nuevo juego
+    private void registrarJuego(boolean isUserWin, long elapsedTime, int movimientos, boolean isSolverUsed) {
+        // Datos del juego
+        String dificultad = "media";
+        String tipoJuego = "juego con imagenes";
+        String resultado = isUserWin ? "gano" : "perdio";
+        int experienciaGanada = isUserWin ? 500 : 0;
+        int experienciaPerdida = isUserWin ? 0 : 500;
+        Date fechaJuego = new Date();  // Fecha actual
+
+        // Crear un nuevo modelo de juego
+        JuegoModel juego = new JuegoModel();
+        juego.setDificultad(dificultad);
+        juego.setTipoJuego(tipoJuego);
+        juego.setCantidadMovimientos(movimientos);
+        juego.setResultado(isUserWin);
+        juego.setExperienciaGanada(experienciaGanada);
+        juego.setExperienciaPerdida(experienciaPerdida);
+        juego.setTiempo((int) (elapsedTime / 1000));  // Convertir milisegundos a segundos
+        juego.setFechaJuego(fechaJuego);
+        juego.setSolverUsed(isSolverUsed);
+        juego.setUsuarioId(userId);
+        try{
+            // Insertar el juego en la base de datos
+            juegoController.crearJuego(juego);
+            Toast.makeText(this, "Registro del juego exitoso", Toast.LENGTH_SHORT).show();
+            Log.d("Registro juego", String.valueOf(juego));
+        }catch (IllegalArgumentException e){
+            Toast.makeText(this, "Error al registrar juego", Toast.LENGTH_SHORT).show();
+        }
+
     }
 
     // Método para reiniciar el puzzle

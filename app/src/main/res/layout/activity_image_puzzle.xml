@@ -7,41 +7,15 @@
     android:layout_height="match_parent"
     tools:context=".view.image_puzzle"
     android:orientation="vertical"
-    android:background="#009688">
-
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:weightSum="3"
-        android:gravity="center"
-        android:orientation="horizontal">
-        <Button
-            android:id="@+id/btnChooseImage"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Seleccionar Imagen"
-            android:layout_weight="1"/>
-
-        <Button
-            android:id="@+id/btnTakePhoto"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Tomar Foto"
-            android:layout_weight="1"/>
-
-        <Button
-            android:id="@+id/btnSolver"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Solver"
-            android:layout_weight="1"/>
-    </LinearLayout>
+    android:background="@drawable/ic_background">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:gravity="center_horizontal">
+        android:gravity="center_horizontal"
+        android:weightSum="2"
+        android:padding="10dp">
         <!-- TextViews para el cronómetro y el contador de movimientos -->
         <TextView
             android:id="@+id/tvTimer"
@@ -49,7 +23,8 @@
             android:layout_height="wrap_content"
             android:text="Tiempo: 00:00"
             android:textSize="18sp"
-            android:textColor="#FFFFFF"/>
+            android:textColor="#FFFFFF"
+            android:layout_weight="1"/>
 
         <TextView
             android:id="@+id/tvMoves"
@@ -57,7 +32,8 @@
             android:layout_height="wrap_content"
             android:text="Movimientos: 0"
             android:textSize="18sp"
-            android:textColor="#FFFFFF"/>
+            android:textColor="#FFFFFF"
+            android:layout_weight="1"/>
 
     </LinearLayout>
 
@@ -83,6 +59,35 @@
         android:horizontalSpacing="2dp"
         android:gravity="center"
         android:columnWidth="90dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:weightSum="3"
+        android:gravity="end"
+        android:orientation="horizontal"
+        android:padding="10dp">
+        <Button
+            android:id="@+id/btnChooseImage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Seleccionar Imagen"
+            android:layout_weight="1"/>
+
+        <Button
+            android:id="@+id/btnTakePhoto"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Tomar Foto"
+            android:layout_weight="1"/>
+
+        <Button
+            android:id="@+id/btnSolver"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Solve"
+            android:layout_weight="1"/>
+    </LinearLayout>
 
 
 </LinearLayout>
