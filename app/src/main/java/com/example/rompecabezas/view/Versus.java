@@ -153,7 +153,7 @@ public class Versus extends AppCompatActivity {
     // Método para registrar un nuevo juego
     private void registrarJuego(boolean isUserWin, long elapsedTime, int movimientos, boolean isSolverUsed) {
         // Datos del juego
-        String dificultad = spinnerDificultad.getSelectedItem().toString();
+        String dificultad = spinnerDificultad.getSelectedItem().toString().toLowerCase();
         String tipoJuego = "versus";
         String resultado = isUserWin ? "gano" : "perdio";
         int experienciaGanada = isUserWin ? 500 : 0;

@@ -1,17 +1,53 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:gravity="center"
-    android:padding="16dp">
+    android:layout_height="match_parent">
 
-    <TextView
-        android:id="@+id/textStatistics"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Mis Estadísticas"
-        android:textSize="24sp" />
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:padding="16dp">
 
-    <!-- Agrega más elementos para mostrar las estadísticas del usuario -->
-</LinearLayout>
+        <TextView
+            android:id="@+id/textStatistics"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Mis Estadísticas"
+            android:textSize="24sp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="20dp" />
+
+        <com.github.mikephil.charting.charts.BarChart
+            android:id="@+id/barChartMovimientos"
+            android:layout_width="match_parent"
+            android:layout_height="300dp"
+            android:layout_marginBottom="20dp" />
+
+        <com.github.mikephil.charting.charts.PieChart
+            android:id="@+id/pieChartResultados"
+            android:layout_width="match_parent"
+            android:layout_height="300dp"
+            android:layout_marginBottom="20dp" />
+
+        <com.github.mikephil.charting.charts.PieChart
+            android:id="@+id/pieChartDificultad"
+            android:layout_width="match_parent"
+            android:layout_height="300dp"
+            android:layout_marginBottom="20dp" />
+
+        <com.github.mikephil.charting.charts.BarChart
+            android:id="@+id/barChartExperiencia"
+            android:layout_width="match_parent"
+            android:layout_height="300dp"
+            android:layout_marginBottom="20dp" />
+
+        <com.github.mikephil.charting.charts.BarChart
+            android:id="@+id/barChartTiempoPromedio"
+            android:layout_width="match_parent"
+            android:layout_height="300dp"
+            android:layout_marginBottom="20dp" />
+
+    </LinearLayout>
+</ScrollView>

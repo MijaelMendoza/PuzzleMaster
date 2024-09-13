@@ -3,7 +3,7 @@
     <string-array name="dificultades">
         <item>Fácil</item>
         <item>Media</item>
-        <item>Difícil</item>
+        <item>Dificil</item>
     </string-array>
     <string name="navigation_drawer_open">Abrir Navegación</string>
     <string name="navigation_drawer_close">Cerrar Navegación</string>
