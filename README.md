@@ -138,15 +138,15 @@ The app includes a login and registration system where users can upload profile 
 
 | Registration Screen         | Login Screen              | Home Screen        |
 |-----------------------------|---------------------------|-------------------------|
-| ![Registration](https://raw.githubusercontent.com/MijaelMendoza/PuzzleMaster/main/BD/register.png) | ![Login](https://raw.githubusercontent.com/MijaelMendoza/PuzzleMaster/main/BD/login.png) | ![Game Mode](https://raw.githubusercontent.com/MijaelMendoza/PuzzleMaster/main/BD/home.png) |
+| ![Registration](https://raw.githubusercontent.com/MijaelMendoza/PuzzleMaster/main/BD/register.png) | ![Login](https://raw.githubusercontent.com/MijaelMendoza/PuzzleMaster/main/BD/login.png) | ![Home](https://raw.githubusercontent.com/MijaelMendoza/PuzzleMaster/main/BD/home.png) |
 
 | Quick Play Mode         | Images Mode              | Versus Mode        |
 |-----------------------------|---------------------------|-------------------------|
-| ![Registration](https://raw.githubusercontent.com/MijaelMendoza/PuzzleMaster/main/BD/quickplay.png) | ![Login](https://raw.githubusercontent.com/MijaelMendoza/PuzzleMaster/main/BD/images.png) | ![Game Mode](https://raw.githubusercontent.com/MijaelMendoza/PuzzleMaster/main/BD/versus.png) |
+| ![QuickPLay](https://raw.githubusercontent.com/MijaelMendoza/PuzzleMaster/main/BD/quickplay.png) | ![Images](https://raw.githubusercontent.com/MijaelMendoza/PuzzleMaster/main/BD/images.png) | ![Versus](https://raw.githubusercontent.com/MijaelMendoza/PuzzleMaster/main/BD/versus.png) |
 
 | Normal Mode         | Profile              | Player Statistics        |
 |-----------------------------|---------------------------|-------------------------|
-| ![Registration](https://raw.githubusercontent.com/MijaelMendoza/PuzzleMaster/main/BD/normal.png) | ![Login](https://raw.githubusercontent.com/MijaelMendoza/PuzzleMaster/main/BD/profile.png) | ![Game Mode](https://raw.githubusercontent.com/MijaelMendoza/PuzzleMaster/main/BD/statistics.png) |
+| ![NormalMode](https://raw.githubusercontent.com/MijaelMendoza/PuzzleMaster/main/BD/normal.png) | ![Profile](https://raw.githubusercontent.com/MijaelMendoza/PuzzleMaster/main/BD/profile.png) | ![Statistics](https://raw.githubusercontent.com/MijaelMendoza/PuzzleMaster/main/BD/statistics.png) |
 
 
 ## Statistics Dashboard
