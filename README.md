@@ -144,6 +144,10 @@ The app includes a login and registration system where users can upload profile 
 |-----------------------------|---------------------------|-------------------------|
 | ![Registration](https://raw.githubusercontent.com/MijaelMendoza/PuzzleMaster/main/BD/quickplay.png) | ![Login](https://raw.githubusercontent.com/MijaelMendoza/PuzzleMaster/main/BD/images.png) | ![Game Mode](https://raw.githubusercontent.com/MijaelMendoza/PuzzleMaster/main/BD/versus.png) |
 
+| Normal Mode         | Profile              | Player Statistics        |
+|-----------------------------|---------------------------|-------------------------|
+| ![Registration](https://raw.githubusercontent.com/MijaelMendoza/PuzzleMaster/main/BD/normal.png) | ![Login](https://raw.githubusercontent.com/MijaelMendoza/PuzzleMaster/main/BD/profile.png) | ![Game Mode](https://raw.githubusercontent.com/MijaelMendoza/PuzzleMaster/main/BD/statistics.png) |
+
 
 ## Statistics Dashboard
 
@@ -157,5 +161,3 @@ The app provides a detailed statistics dashboard with animated charts that displ
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-```  
