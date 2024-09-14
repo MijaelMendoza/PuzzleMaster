@@ -161,3 +161,4 @@ The app provides a detailed statistics dashboard with animated charts that displ
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
