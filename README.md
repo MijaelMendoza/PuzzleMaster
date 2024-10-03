@@ -1,6 +1,6 @@
 # PuzzleMaster
 
-This project is an Android-based sliding puzzle game with various modes, including normal play, image-based play, and a "versus" mode where the player competes against an AI. It also features a login and registration system where users can manage their profile with a photo.
+This project is an Android-based sliding puzzle game with various modes, including normal play, image-based play, and a "versus" mode where the player competes against an AI. It also features a login and registration system where users can manage their profile with a photo. 
 
 ## Features
 
